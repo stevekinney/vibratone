@@ -196,30 +196,40 @@ export function createPracticeState(seed: string | null = null) {
 		phase = 'guessing';
 		promptStartedAt = Date.now();
 		round += 1;
-		currentReferenceAvailable = sound(prompt);
+		currentReferenceAvailable = false;
+		sound(prompt);
 	}
 
 	/** Synthesize the given prompt. Best-effort; visible error when audio is unavailable. */
-	function sound(prompt: DrillPrompt): boolean {
+	function sound(prompt: DrillPrompt): void {
 		const synth = getSynth();
 		if (!synth) {
+			currentReferenceAvailable = false;
 			audioError = 'Audio is unavailable in this browser. You can still answer the drill.';
-			return false;
+			return;
 		}
 		audioError = null;
 		try {
+			const wasRunning = synth.state === 'running';
 			const resumed = synth.resume();
 			synth.play(prompt.frequencyHz, { tone, length: noteLength });
-			void resumed.catch(() => {
-				if (currentPrompt === prompt) {
-					currentReferenceAvailable = false;
-					audioError = 'Audio could not start. You can still answer the drill or try replay.';
-				}
-			});
-			return true;
+			if (wasRunning) currentReferenceAvailable = true;
+			void resumed
+				.then(() => {
+					if (currentPrompt?.promptId === prompt.promptId) {
+						currentReferenceAvailable = true;
+						audioError = null;
+					}
+				})
+				.catch(() => {
+					if (currentPrompt?.promptId === prompt.promptId) {
+						currentReferenceAvailable = false;
+						audioError = 'Audio could not start. You can still answer the drill or try replay.';
+					}
+				});
 		} catch {
+			currentReferenceAvailable = false;
 			audioError = 'Audio could not start. You can still answer the drill or try replay.';
-			return false;
 		}
 	}
 
@@ -236,7 +246,7 @@ export function createPracticeState(seed: string | null = null) {
 
 	/** Replay the current note without changing any state. */
 	function replay(): void {
-		if (currentPrompt && sound(currentPrompt)) currentReferenceAvailable = true;
+		if (currentPrompt) sound(currentPrompt);
 	}
 
 	/** Submit a pitch-class guess. Octave is ignored — only pitch class matters. */

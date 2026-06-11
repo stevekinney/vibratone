@@ -37,4 +37,14 @@ describe('seededRandomInt', () => {
 
 		expect(values.size).toBeGreaterThan(1);
 	});
+
+	it('skip advances into the same deterministic stream', () => {
+		const fullSequence = seededRandomInt('skip-seed');
+		const skippedSequence = seededRandomInt('skip-seed', 12);
+		Array.from({ length: 12 }, () => fullSequence(1000));
+
+		expect(Array.from({ length: 8 }, () => skippedSequence(1000))).toEqual(
+			Array.from({ length: 8 }, () => fullSequence(1000))
+		);
+	});
 });

@@ -1,15 +1,49 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import { page } from 'vitest/browser';
 import { ATTEMPT_LOG_KEY } from '$lib/learning/drills';
 import { resetSynth } from '$lib/audio';
+import { createFakeAudioContext } from '$lib/audio/__mocks__/fake-audio-context';
 import { createPracticeState } from '$lib/state.svelte';
 import Harness from './practice-card.test-harness.svelte';
+
+const originalAudioContext = window.AudioContext;
+const originalWebkitAudioContext = (
+	window as typeof window & { webkitAudioContext?: typeof AudioContext }
+).webkitAudioContext;
+
+function installRunningAudioContext(): void {
+	const RunningAudioContext = function () {
+		return createFakeAudioContext();
+	} as unknown as typeof AudioContext;
+	Object.defineProperty(window, 'AudioContext', {
+		configurable: true,
+		value: RunningAudioContext
+	});
+	Object.defineProperty(window, 'webkitAudioContext', { configurable: true, value: undefined });
+}
+
+function restoreAudioContext(): void {
+	Object.defineProperty(window, 'AudioContext', {
+		configurable: true,
+		value: originalAudioContext
+	});
+	Object.defineProperty(window, 'webkitAudioContext', {
+		configurable: true,
+		value: originalWebkitAudioContext
+	});
+}
 
 beforeEach(() => {
 	localStorage.clear();
 	sessionStorage.clear();
 	resetSynth();
+	installRunningAudioContext();
+});
+
+afterEach(() => {
+	resetSynth();
+	restoreAudioContext();
 });
 
 function attemptLog(): unknown[] {

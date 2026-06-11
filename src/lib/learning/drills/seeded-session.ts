@@ -33,7 +33,8 @@ export function createSeededSession(
 	const pool = buildPool(config.eligiblePitchClasses, config.octaveLo, config.octaveHi);
 	if (pool.length === 0 || count <= 0) return [];
 
-	const randomInt = config.seed !== undefined ? seededRandomInt(config.seed) : undefined;
+	const randomInt =
+		config.seed !== undefined ? seededRandomInt(config.seed, startIndex) : undefined;
 	const prompts: DrillPrompt[] = [];
 	let previous: Pitch | null = previousPrompt;
 

@@ -12,8 +12,11 @@ function stringToSeed(seed: string): number {
 	return hash >>> 0;
 }
 
-export function seededRandomInt(seed: string): RandomInt {
+export function seededRandomInt(seed: string, skip = 0): RandomInt {
 	const random = createSeededRandom(stringToSeed(seed));
+	for (let index = 0; index < Math.max(0, Math.floor(skip)); index++) {
+		random();
+	}
 	return (count) => {
 		if (count <= 0) return 0;
 		return Math.min(Math.floor(random() * count), count - 1);

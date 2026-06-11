@@ -59,4 +59,16 @@ describe('seeded-session', () => {
 
 		expect(`${prompt.pitchClass}:${prompt.octave}`).not.toBe('0:4');
 	});
+
+	it('continues the seeded random stream across split batches', () => {
+		const fullSession = createSeededSession(baseConfig, 128);
+		const firstBatch = createSeededSession(baseConfig, 64);
+		const lastPrompt = firstBatch[firstBatch.length - 1];
+		const secondBatch = createSeededSession(baseConfig, 64, 64, {
+			pc: lastPrompt.pitchClass,
+			octave: lastPrompt.octave
+		});
+
+		expect([...firstBatch, ...secondBatch]).toEqual(fullSession);
+	});
 });

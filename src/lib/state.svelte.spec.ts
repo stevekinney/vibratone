@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ATTEMPT_LOG_KEY } from './learning/drills';
 import { resetSynth } from './audio';
+import { createFakeAudioContext } from './audio/__mocks__/fake-audio-context';
 import { createPracticeState } from './state.svelte';
 
 const originalAudioContext = window.AudioContext;
@@ -28,6 +29,23 @@ function restoreAudioContext(): void {
 		configurable: true,
 		value: originalWebkitAudioContext
 	});
+}
+
+function installRejectingAudioContext(): void {
+	const context = createFakeAudioContext();
+	Object.defineProperty(context, 'state', { configurable: true, value: 'suspended' });
+	Object.defineProperty(context, 'resume', {
+		configurable: true,
+		value: () => Promise.reject(new Error('resume rejected'))
+	});
+	const RejectingAudioContext = function () {
+		return context;
+	} as unknown as typeof AudioContext;
+	Object.defineProperty(window, 'AudioContext', {
+		configurable: true,
+		value: RejectingAudioContext
+	});
+	Object.defineProperty(window, 'webkitAudioContext', { configurable: true, value: undefined });
 }
 
 beforeEach(() => {
@@ -88,6 +106,21 @@ describe('practice state — drill conversion', () => {
 
 		expect(attemptLog()).toHaveLength(1);
 		expect(state.session.total).toBe(1);
+	});
+
+	it('does not log reference availability before a suspended context resumes', () => {
+		installRejectingAudioContext();
+		const state = createPracticeState('state-rejected-resume');
+		state.play();
+		const prompt = state.currentPrompt!;
+
+		state.guess(prompt.pitchClass);
+
+		expect(attemptLog()).toHaveLength(1);
+		expect(attemptLog()[0]).toMatchObject({
+			promptId: prompt.promptId,
+			referenceAvailable: false
+		});
 	});
 
 	it('multiple guesses grow the attempt log and update scores through the converted path', () => {
