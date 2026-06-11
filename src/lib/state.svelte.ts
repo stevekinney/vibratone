@@ -105,7 +105,7 @@ export function createPracticeState(seed: string | null = null) {
 	let promptSequence: DrillPrompt[] = [];
 	let promptSequenceIndex = 0;
 	let promptSequenceKey = '';
-	let promptSequenceStartIndex = 0;
+	let promptOrdinal = 0;
 	let currentReferenceAvailable = false;
 
 	// Audio is hard-coded (no Tweaks panel) but the synth supports all tones.
@@ -161,25 +161,22 @@ export function createPracticeState(seed: string | null = null) {
 		const config = drillConfig();
 		const key = sequenceKey(config);
 		if (key !== promptSequenceKey) {
-			promptSequenceStartIndex = 0;
-			promptSequence = createSeededSession(config, undefined, promptSequenceStartIndex);
-			promptSequenceStartIndex += promptSequence.length;
+			const previousPrompt = currentPrompt
+				? { pc: currentPrompt.pitchClass, octave: currentPrompt.octave }
+				: null;
+			promptSequence = createSeededSession(config, undefined, promptOrdinal, previousPrompt);
 			promptSequenceIndex = 0;
 			promptSequenceKey = key;
 		} else if (promptSequenceIndex >= promptSequence.length) {
 			const previousPrompt = currentPrompt
 				? { pc: currentPrompt.pitchClass, octave: currentPrompt.octave }
 				: null;
-			promptSequence = createSeededSession(
-				config,
-				undefined,
-				promptSequenceStartIndex,
-				previousPrompt
-			);
-			promptSequenceStartIndex += promptSequence.length;
+			promptSequence = createSeededSession(config, undefined, promptOrdinal, previousPrompt);
 			promptSequenceIndex = 0;
 		}
-		return promptSequence[promptSequenceIndex++] ?? null;
+		const prompt = promptSequence[promptSequenceIndex++] ?? null;
+		if (prompt) promptOrdinal += 1;
+		return prompt;
 	}
 
 	/** Pick and play a fresh prompt, advancing the round counter. */

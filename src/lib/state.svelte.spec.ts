@@ -138,6 +138,22 @@ describe('practice state — drill conversion', () => {
 		expect(state.allTime).toMatchObject({ total: 2, correct: 1, streak: 0, best: 1 });
 	});
 
+	it('continues prompt IDs when setup changes in a seeded session', () => {
+		const state = createPracticeState('state-settings-change');
+		state.play();
+		const first = state.currentPrompt!;
+		state.guess(first.pitchClass);
+
+		state.setOctaves(5, 5);
+		state.play();
+		const second = state.currentPrompt!;
+		state.guess(second.pitchClass);
+
+		expect(first.promptId).not.toBe(second.promptId);
+		expect(second.promptId).toContain(':1:');
+		expect(attemptLog().map((event) => event.promptId)).toEqual([first.promptId, second.promptId]);
+	});
+
 	it('destroy clears a pending auto-advance timer', () => {
 		vi.useFakeTimers();
 		const state = createPracticeState('state-destroy');
