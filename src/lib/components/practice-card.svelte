@@ -1,6 +1,8 @@
 <script lang="ts">
 	import Card from '@lostgradient/cinder/card';
-	import { Play, RotateCcw, Check } from 'lucide-svelte';
+	import Check from 'lucide-svelte/icons/check';
+	import Play from 'lucide-svelte/icons/play';
+	import RotateCcw from 'lucide-svelte/icons/rotate-ccw';
 	import { getPracticeState } from '$lib/state.svelte';
 	import { formatPitch, noteLabel } from '$lib/music';
 
@@ -47,6 +49,12 @@
 		</button>
 
 		<p class="status" data-tone={statusTone}>{statusText}</p>
+
+		<div class="audio-error" role="alert">
+			{#if state.audioError}
+				{state.audioError}
+			{/if}
+		</div>
 
 		<button type="button" class="replay" disabled={!state.current} onclick={() => state.replay()}>
 			<RotateCcw size={16} strokeWidth={1.5} />
@@ -173,6 +181,13 @@
 
 	.status[data-tone='default'] {
 		color: var(--cinder-text);
+	}
+
+	.audio-error {
+		min-height: 20px;
+		font-size: var(--cinder-text-sm);
+		color: var(--cinder-color-danger-fg);
+		text-align: center;
 	}
 
 	.replay {

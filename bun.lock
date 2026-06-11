@@ -5,8 +5,9 @@
     "": {
       "name": "vibratone",
       "dependencies": {
-        "@lostgradient/cinder": "^0.1.1",
-        "octavian": "^3.0.0",
+        "@lostgradient/cinder": "0.2.0",
+        "lucide-svelte": "0.503.0",
+        "octavian": "3.1.0",
         "web-audio-api": "^1.5.1",
       },
       "devDependencies": {
@@ -145,7 +146,7 @@
 
     "@lezer/lr": ["@lezer/lr@1.4.10", "", { "dependencies": { "@lezer/common": "^1.0.0" } }, "sha512-rnCpTIBafOx4mRp43xOxDJbFipJm/c0cia/V5TiGlhmMa+wsSdoGmUN3w5Bqrks/09Q/D4tNAmWaT8p6NRi77A=="],
 
-    "@lostgradient/cinder": ["@lostgradient/cinder@0.1.1", "", { "dependencies": { "@floating-ui/dom": "1.7.6", "@lasercat/homogenaize": "^1.2.41", "@milkdown/ctx": "^7.17.3", "@milkdown/kit": "^7.17.3", "@milkdown/prose": "^7.17.3", "@shikijs/rehype": "^3.21.0", "ajv": "^8", "comlink": "^4.4.2", "diff-match-patch": "^1.0.5", "esm-env": "^1.2.0", "hast-util-sanitize": "^5.0.0", "js-yaml": "^4.1.0", "libphonenumber-js": "^1.13.3", "lucide-svelte": "^0.503.0", "prosemirror-inputrules": "^1.5.1", "prosemirror-model": "^1.25.4", "prosemirror-state": "^1.4.4", "prosemirror-view": "^1.41.3", "rehype-katex": "^7.0.1", "rehype-sanitize": "^6.0.0", "rehype-stringify": "^10.0.1", "remark-gfm": "^4.0.1", "remark-html": "^16.0.1", "remark-math": "^6.0.0", "remark-parse": "^11.0.0", "remark-rehype": "^11.1.2", "remark-stringify": "^11.0.0", "shiki": "^3.21.0", "unified": "^11.0.5", "unist-util-remove": "^4.0.0", "unist-util-visit": "^5.0.0" }, "peerDependencies": { "svelte": ">=5.55.0 <6" } }, "sha512-kgKfoGzJeLdtvDdbVKQ4KZB9DS83VtnEZSrH4OItdsVDxsOeRWaNkK6yzQ72MjOj2b8O3TWWtdkL90bYV4VlbA=="],
+    "@lostgradient/cinder": ["@lostgradient/cinder@0.2.0", "", { "dependencies": { "@floating-ui/dom": "1.7.6", "@lasercat/homogenaize": "^1.2.41", "@milkdown/ctx": "^7.17.3", "@milkdown/kit": "^7.17.3", "@milkdown/prose": "^7.17.3", "@shikijs/rehype": "^3.21.0", "ajv": "^8", "comlink": "^4.4.2", "diff-match-patch": "^1.0.5", "esm-env": "^1.2.0", "hast-util-sanitize": "^5.0.0", "js-yaml": "^4.1.0", "libphonenumber-js": "^1.13.3", "prosemirror-inputrules": "^1.5.1", "prosemirror-model": "^1.25.4", "prosemirror-state": "^1.4.4", "prosemirror-view": "^1.41.3", "rehype-katex": "^7.0.1", "rehype-sanitize": "^6.0.0", "rehype-stringify": "^10.0.1", "remark-gfm": "^4.0.1", "remark-html": "^16.0.1", "remark-math": "^6.0.0", "remark-parse": "^11.0.0", "remark-rehype": "^11.1.2", "remark-stringify": "^11.0.0", "shiki": "^3.21.0", "unified": "^11.0.5", "unist-util-remove": "^4.0.0", "unist-util-visit": "^5.0.0" }, "peerDependencies": { "lucide-svelte": ">=0.400.0 <1", "svelte": ">=5.55.0 <6" } }, "sha512-WIei/h6j26hGH6+ey/irYwH3yVs0uwTlhIXyP4sbyENlt3FkLtkZ+xvUkEDqFXWZzbt/8O+b/T0I2QJQ12ubXA=="],
 
     "@marijn/find-cluster-break": ["@marijn/find-cluster-break@1.0.2", "", {}, "sha512-l0h88YhZFyKdXIFNfSWpyjStDjGHwZ/U7iobcK1cQQD8sejsONdQtTVU+1wVN1PBw40PiiHB1vA5S7VTfQiP9g=="],
 
@@ -721,7 +722,7 @@
 
     "obug": ["obug@2.1.2", "", {}, "sha512-AWGB9WFcRXOQs48Z/udjI5ZcZMHXwX8XPByNpOydgcGsDLIzjGizhoMWJyKAWze7AVW/2W1i+/gPX4YtKe5cyg=="],
 
-    "octavian": ["octavian@3.0.0", "", {}, "sha512-4Dj5cUQlfwSSHr1Z8ahsB9uvAV34iCVsQrv2Dm1UOnyvZg3i82X8Wr63E4Rdg2xWh1dx0UpE4OTsm7Pcff7hPw=="],
+    "octavian": ["octavian@3.1.0", "", {}, "sha512-fN9aElsDFY1PtPerJ4Fhx7DCz5kBp3BHomcchm+S2aoDO/cLLk/Xcm3KPcfoYpmap0K9AgkrxreDCiXmHEaA4w=="],
 
     "ogg-opus-decoder": ["ogg-opus-decoder@1.7.3", "", { "dependencies": { "@wasm-audio-decoders/common": "9.0.7", "@wasm-audio-decoders/opus-ml": "0.0.2", "codec-parser": "2.5.0", "opus-decoder": "0.7.11" } }, "sha512-w47tiZpkLgdkpa+34VzYD8mHUj8I9kfWVZa82mBbNwDvB1byfLXSSzW/HxA4fI3e9kVlICSpXGFwMLV1LPdjwg=="],
 

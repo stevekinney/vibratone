@@ -1,13 +1,16 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
+	import { onDestroy, untrack } from 'svelte';
 	import { createPracticeState, setPracticeState } from '$lib/state.svelte';
 	import AppHeader from '$lib/components/app-header.svelte';
 	import ScoreBar from '$lib/components/score-bar.svelte';
 	import PracticeCard from '$lib/components/practice-card.svelte';
 	import PianoKeyboard from '$lib/components/piano-keyboard.svelte';
 	import SetupCard from '$lib/components/setup-card.svelte';
+	import type { PageProps } from './$types';
 
-	const state = setPracticeState(createPracticeState());
+	let { data }: PageProps = $props();
+
+	const state = setPracticeState(untrack(() => createPracticeState(data.seed)));
 
 	onDestroy(() => state.destroy());
 </script>

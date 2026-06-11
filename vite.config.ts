@@ -4,6 +4,20 @@ import { sveltekit } from '@sveltejs/kit/vite';
 
 export default defineConfig({
 	plugins: [sveltekit()],
+	optimizeDeps: {
+		include: [
+			'lucide-svelte/icons/activity',
+			'lucide-svelte/icons/check',
+			'lucide-svelte/icons/flame',
+			'lucide-svelte/icons/play',
+			'lucide-svelte/icons/rotate-ccw',
+			'lucide-svelte/icons/square',
+			'lucide-svelte/icons/x'
+		]
+	},
+	ssr: {
+		noExternal: ['lucide-svelte']
+	},
 	test: {
 		expect: { requireAssertions: true },
 		projects: [

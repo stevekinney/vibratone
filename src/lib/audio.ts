@@ -119,6 +119,10 @@ export class Synth {
 		return this.#context.state;
 	}
 
+	get context(): AudioContext {
+		return this.#context;
+	}
+
 	/** Ramp every active voice down quickly so replays don't pile up. */
 	stopAll(): void {
 		const now = this.#context.currentTime;

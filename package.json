@@ -12,7 +12,9 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
-		"test:e2e": "playwright install && playwright test",
+		"test:e2e": "playwright install && bun run test:e2e:production && bun run test:e2e:development",
+		"test:e2e:production": "VIBRATONE_E2E_MODE=production playwright test --project=production",
+		"test:e2e:development": "VIBRATONE_E2E_MODE=development playwright test --project=development",
 		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:unit": "vitest"
 	},
@@ -40,8 +42,9 @@
 		"vitest-browser-svelte": "^2.1.0"
 	},
 	"dependencies": {
-		"@lostgradient/cinder": "^0.1.1",
-		"octavian": "^3.0.0",
+		"@lostgradient/cinder": "0.2.0",
+		"lucide-svelte": "0.503.0",
+		"octavian": "3.1.0",
 		"web-audio-api": "^1.5.1"
 	}
 }
