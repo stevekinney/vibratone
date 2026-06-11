@@ -135,3 +135,37 @@ test('records five AttemptEvent objects locally without outbound drill requests'
 	);
 	expect(outboundRequests).toEqual([]);
 });
+
+test('client-side seed navigation creates a new deterministic practice session', async ({
+	page
+}) => {
+	await page.clock.install();
+	await page.goto('/?seed=first-seed');
+
+	await page.getByRole('button', { name: 'Play the note' }).click();
+	await keyboard(page).getByRole('button', { name: 'C', exact: true }).click();
+
+	await page.evaluate(() => {
+		const link = document.createElement('a');
+		link.href = '/?seed=second-seed';
+		link.textContent = 'Second seed';
+		link.id = 'second-seed-link';
+		document.body.append(link);
+	});
+	await page.locator('#second-seed-link').click();
+	await expect(page).toHaveURL(/seed=second-seed/);
+	await expect(page.getByText('Ready')).toBeVisible();
+
+	await page.getByRole('button', { name: 'Play the note' }).click();
+	await keyboard(page).getByRole('button', { name: 'C', exact: true }).click();
+
+	const promptIds = await page.evaluate(() =>
+		JSON.parse(localStorage.getItem('vibratone:attempts:v1') ?? '[]').map(
+			(event: { promptId: string }) => event.promptId
+		)
+	);
+	expect(promptIds).toEqual([
+		expect.stringContaining(':first-seed:'),
+		expect.stringContaining(':second-seed:')
+	]);
+});

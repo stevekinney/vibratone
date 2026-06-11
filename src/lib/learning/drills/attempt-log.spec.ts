@@ -95,6 +95,13 @@ describe('attempt-log', () => {
 		expect(loadAttemptLog()).toEqual([]);
 	});
 
+	it('loadAttemptLog keeps valid events when one stored entry is invalid', () => {
+		const second = { ...event, promptId: 'second-valid', timestamp: event.timestamp + 1 };
+		localStorage.setItem(ATTEMPT_LOG_KEY, JSON.stringify([event, { invalid: true }, second]));
+
+		expect(loadAttemptLog()).toEqual([event, second]);
+	});
+
 	it('SESSION_ID is a valid UUID v4 format', () => {
 		expect(SESSION_ID).toMatch(
 			/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i

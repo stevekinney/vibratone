@@ -39,7 +39,7 @@ export function loadAttemptLog(): AttemptEvent[] {
 
 	try {
 		const parsed: unknown = JSON.parse(raw);
-		return Array.isArray(parsed) && parsed.every(isAttemptEvent) ? parsed : [];
+		return Array.isArray(parsed) ? parsed.filter(isAttemptEvent) : [];
 	} catch {
 		return [];
 	}
