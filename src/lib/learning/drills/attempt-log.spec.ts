@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ATTEMPT_LOG_KEY, SESSION_ID, appendAttemptEvent, loadAttemptLog } from './attempt-log.ts';
+import {
+	ATTEMPT_LOG_KEY,
+	MAX_ATTEMPT_LOG_EVENTS,
+	SESSION_ID,
+	appendAttemptEvent,
+	loadAttemptLog
+} from './attempt-log.ts';
 import type { AttemptEvent } from './schema.ts';
 
 vi.mock('$app/environment', () => ({
@@ -70,6 +76,17 @@ describe('attempt-log', () => {
 		appendAttemptEvent(second);
 
 		expect(loadAttemptLog()).toEqual([event, second]);
+	});
+
+	it('appendAttemptEvent keeps only the newest bounded events', () => {
+		for (let index = 0; index < MAX_ATTEMPT_LOG_EVENTS + 2; index++) {
+			appendAttemptEvent({ ...event, promptId: `prompt-${index}`, timestamp: index });
+		}
+
+		const log = loadAttemptLog();
+		expect(log).toHaveLength(MAX_ATTEMPT_LOG_EVENTS);
+		expect(log[0].promptId).toBe('prompt-2');
+		expect(log.at(-1)?.promptId).toBe(`prompt-${MAX_ATTEMPT_LOG_EVENTS + 1}`);
 	});
 
 	it('malformed localStorage value returns empty array without throwing', () => {

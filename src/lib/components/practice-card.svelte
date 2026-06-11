@@ -50,11 +50,11 @@
 
 		<p class="status" data-tone={statusTone}>{statusText}</p>
 
-		<div class="audio-error" role="alert">
-			{#if state.audioError}
+		{#if state.audioError}
+			<div class="audio-error" role="alert">
 				{state.audioError}
-			{/if}
-		</div>
+			</div>
+		{/if}
 
 		<button type="button" class="replay" disabled={!state.current} onclick={() => state.replay()}>
 			<RotateCcw size={16} strokeWidth={1.5} />

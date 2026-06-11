@@ -1,5 +1,5 @@
 import { pitchToFrequency, type Pitch } from '../../music.ts';
-import { buildPool, createPrompt } from '../../round.ts';
+import { createPrompt, poolSize } from '../../round.ts';
 import type { DrillConfig, DrillPrompt } from './schema.ts';
 import { seededRandomInt } from './seeded-random.ts';
 
@@ -30,8 +30,9 @@ export function createSeededSession(
 	startIndex = 0,
 	previousPrompt: Pitch | null = null
 ): DrillPrompt[] {
-	const pool = buildPool(config.eligiblePitchClasses, config.octaveLo, config.octaveHi);
-	if (pool.length === 0 || count <= 0) return [];
+	if (poolSize(config.eligiblePitchClasses, config.octaveLo, config.octaveHi) === 0 || count <= 0) {
+		return [];
+	}
 
 	const randomInt =
 		config.seed !== undefined ? seededRandomInt(config.seed, startIndex) : undefined;

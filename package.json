@@ -13,8 +13,8 @@
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
 		"test:e2e": "playwright install && bun run test:e2e:production && bun run test:e2e:development",
-		"test:e2e:production": "VIBRATONE_E2E_MODE=production playwright test --project=production",
-		"test:e2e:development": "VIBRATONE_E2E_MODE=development playwright test --project=development",
+		"test:e2e:production": "bun scripts/run-playwright-project.ts production",
+		"test:e2e:development": "bun scripts/run-playwright-project.ts development",
 		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:unit": "vitest"
 	},

@@ -2,6 +2,7 @@ import { localStorageOrNull } from '../../persistence.ts';
 import { isAttemptEvent, type AttemptEvent } from './schema.ts';
 
 export const ATTEMPT_LOG_KEY = 'vibratone:attempts:v1';
+export const MAX_ATTEMPT_LOG_EVENTS = 500;
 
 function createSessionId(): string {
 	if (typeof globalThis.crypto?.randomUUID === 'function') {
@@ -49,7 +50,8 @@ export function appendAttemptEvent(event: AttemptEvent): void {
 	if (!storage) return;
 
 	try {
-		storage.setItem(ATTEMPT_LOG_KEY, JSON.stringify([...loadAttemptLog(), event]));
+		const boundedLog = [...loadAttemptLog(), event].slice(-MAX_ATTEMPT_LOG_EVENTS);
+		storage.setItem(ATTEMPT_LOG_KEY, JSON.stringify(boundedLog));
 	} catch {
 		// Disabled or full storage must not break a local drill session.
 	}
