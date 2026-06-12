@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Flame } from 'lucide-svelte';
+	import Flame from 'lucide-svelte/icons/flame';
 	import Button from '@lostgradient/cinder/button';
 	import { getPracticeState } from '$lib/state.svelte';
 

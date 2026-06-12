@@ -15,7 +15,6 @@ import { SvelteSet } from 'svelte/reactivity';
 import { getSynth, DEFAULT_NOTE_LENGTH, DEFAULT_TONE, type Tone } from './audio.ts';
 import {
 	keyById,
-	pitchToFrequency,
 	scalePitchClassSet,
 	type KeyDefinition,
 	type Pitch,
@@ -35,8 +34,16 @@ import {
 	sessionStorageOrNull,
 	type PersistedSettings
 } from './persistence.ts';
-import { createPrompt, normalizeOctaveRange, poolSize } from './round.ts';
+import { normalizeOctaveRange, poolSize } from './round.ts';
 import { EMPTY_SCORE, applyGuess, percent, type Score } from './scoring.ts';
+import {
+	SESSION_ID,
+	appendAttemptEvent,
+	createSeededSession,
+	pitchClassEquals,
+	type DrillConfig,
+	type DrillPrompt
+} from './learning/drills';
 
 /** Where the app is in the round lifecycle. */
 export type Phase = 'idle' | 'guessing' | 'revealed';
@@ -51,6 +58,8 @@ const DEFAULT_SETTINGS: PersistedSettings = {
 	octaveHi: 4
 };
 
+const DRILL_ID = 'note-trainer';
+
 export type PracticeState = ReturnType<typeof createPracticeState>;
 
 /**
@@ -62,9 +71,10 @@ const [getPracticeState, setPracticeState] = createContext<PracticeState>();
 export { getPracticeState, setPracticeState };
 
 /** Construct a practice-session state instance. Call once per session. */
-export function createPracticeState() {
+export function createPracticeState(seed: string | null = null) {
 	const sessionStore = sessionStorageOrNull();
 	const localStore = localStorageOrNull();
+	const sessionSeed = seed && seed.length > 0 ? seed : null;
 
 	const loadedSettings = loadJSON(localStore, SETTINGS_KEY, DEFAULT_SETTINGS, isPersistedSettings);
 	const [initialLo, initialHi] = normalizeOctaveRange(
@@ -84,12 +94,19 @@ export function createPracticeState() {
 
 	// --- Round ---
 	let round = $state(0);
-	let current = $state<Pitch | null>(null);
+	let currentPrompt = $state<DrillPrompt | null>(null);
 	let phase = $state<Phase>('idle');
 	let guessedPc = $state<PitchClass | null>(null);
 	let lastCorrect = $state(false);
 	let started = $state(false);
+	let audioError = $state<string | null>(null);
 	let autoAdvanceTimer: ReturnType<typeof setTimeout> | undefined;
+	let promptStartedAt = 0;
+	let promptSequence: DrillPrompt[] = [];
+	let promptSequenceIndex = 0;
+	let promptSequenceKey = '';
+	let promptOrdinal = 0;
+	let currentReferenceAvailable = false;
 
 	// Audio is hard-coded (no Tweaks panel) but the synth supports all tones.
 	const tone: Tone = DEFAULT_TONE;
@@ -103,6 +120,9 @@ export function createPracticeState() {
 	const canPlay = $derived(available > 0);
 	const octaveLabel = $derived(
 		octaveLo === octaveHi ? `C${octaveLo}` : `C${octaveLo}–C${octaveHi}`
+	);
+	const current = $derived<Pitch | null>(
+		currentPrompt ? { pc: currentPrompt.pitchClass, octave: currentPrompt.octave } : null
 	);
 
 	function persistSettings(): void {
@@ -122,33 +142,92 @@ export function createPracticeState() {
 		}
 	}
 
+	function drillConfig(): DrillConfig {
+		return {
+			drillId: DRILL_ID,
+			seed: sessionSeed ?? undefined,
+			eligiblePitchClasses: [...eligibleNotes].sort((a, b) => a - b),
+			octaveLo,
+			octaveHi,
+			timbre: tone
+		};
+	}
+
+	function sequenceKey(config: DrillConfig): string {
+		return JSON.stringify(config);
+	}
+
+	function nextPrompt(): DrillPrompt | null {
+		const config = drillConfig();
+		const key = sequenceKey(config);
+		if (key !== promptSequenceKey) {
+			const previousPrompt = currentPrompt
+				? { pc: currentPrompt.pitchClass, octave: currentPrompt.octave }
+				: null;
+			promptSequence = createSeededSession(config, undefined, promptOrdinal, previousPrompt);
+			promptSequenceIndex = 0;
+			promptSequenceKey = key;
+		} else if (promptSequenceIndex >= promptSequence.length) {
+			const previousPrompt = currentPrompt
+				? { pc: currentPrompt.pitchClass, octave: currentPrompt.octave }
+				: null;
+			promptSequence = createSeededSession(config, undefined, promptOrdinal, previousPrompt);
+			promptSequenceIndex = 0;
+		}
+		const prompt = promptSequence[promptSequenceIndex++] ?? null;
+		if (prompt) promptOrdinal += 1;
+		return prompt;
+	}
+
 	/** Pick and play a fresh prompt, advancing the round counter. */
 	function nextRound(): void {
 		clearTimer();
-		const prompt = createPrompt({
-			eligiblePitchClasses: eligibleNotes,
-			octaveLo,
-			octaveHi,
-			previous: current
-		});
+		const prompt = nextPrompt();
 		if (!prompt) {
-			current = null;
+			currentPrompt = null;
 			phase = 'idle';
 			return;
 		}
-		current = prompt;
+		currentPrompt = prompt;
 		guessedPc = null;
 		phase = 'guessing';
+		promptStartedAt = Date.now();
 		round += 1;
+		currentReferenceAvailable = false;
 		sound(prompt);
 	}
 
-	/** Synthesize the given pitch. Best-effort; silent when audio is unavailable. */
-	function sound(pitch: Pitch): void {
+	/** Synthesize the given prompt. Best-effort; visible error when audio is unavailable. */
+	function sound(prompt: DrillPrompt): void {
 		const synth = getSynth();
-		if (!synth) return;
-		void synth.resume();
-		synth.play(pitchToFrequency(pitch), { tone, length: noteLength });
+		if (!synth) {
+			currentReferenceAvailable = false;
+			audioError = 'Audio is unavailable in this browser. You can still answer the drill.';
+			return;
+		}
+		audioError = null;
+		try {
+			const wasRunning = synth.state === 'running';
+			const resumed = synth.resume();
+			synth.play(prompt.frequencyHz, { tone, length: noteLength });
+			if (wasRunning) currentReferenceAvailable = true;
+			void resumed
+				.then(() => {
+					if (currentPrompt?.promptId === prompt.promptId) {
+						currentReferenceAvailable = true;
+						audioError = null;
+					}
+				})
+				.catch(() => {
+					if (currentPrompt?.promptId === prompt.promptId) {
+						currentReferenceAvailable = false;
+						audioError = 'Audio could not start. You can still answer the drill or try replay.';
+					}
+				});
+		} catch {
+			currentReferenceAvailable = false;
+			audioError = 'Audio could not start. You can still answer the drill or try replay.';
+		}
 	}
 
 	/**
@@ -164,13 +243,13 @@ export function createPracticeState() {
 
 	/** Replay the current note without changing any state. */
 	function replay(): void {
-		if (current) sound(current);
+		if (currentPrompt) sound(currentPrompt);
 	}
 
 	/** Submit a pitch-class guess. Octave is ignored — only pitch class matters. */
 	function guess(pc: PitchClass): void {
-		if (phase !== 'guessing' || !current) return;
-		const wasCorrect = pc === current.pc;
+		if (phase !== 'guessing' || !currentPrompt) return;
+		const wasCorrect = pitchClassEquals(pc, currentPrompt.pitchClass);
 		guessedPc = pc;
 		lastCorrect = wasCorrect;
 		phase = 'revealed';
@@ -179,6 +258,23 @@ export function createPracticeState() {
 		allTime = applyGuess(allTime, wasCorrect);
 		saveJSON(sessionStore, SESSION_SCORE_KEY, session);
 		saveJSON(localStore, ALL_TIME_SCORE_KEY, allTime);
+		appendAttemptEvent({
+			version: 1,
+			drillId: DRILL_ID,
+			promptId: currentPrompt.promptId,
+			sessionId: SESSION_ID,
+			timestamp: Date.now(),
+			responseTimeMs: Math.max(0, Date.now() - promptStartedAt),
+			answer: pc,
+			correctAnswer: currentPrompt.pitchClass,
+			correct: wasCorrect,
+			pitchClass: currentPrompt.pitchClass,
+			octave: currentPrompt.octave,
+			timbre: currentPrompt.timbre,
+			frequencyHz: currentPrompt.frequencyHz,
+			referenceAvailable: currentReferenceAvailable,
+			stimulusType: currentPrompt.stimulusType
+		});
 
 		clearTimer();
 		autoAdvanceTimer = setTimeout(() => {
@@ -186,7 +282,7 @@ export function createPracticeState() {
 			if (canPlay) nextRound();
 			else {
 				phase = 'idle';
-				current = null;
+				currentPrompt = null;
 			}
 		}, AUTO_ADVANCE_MS);
 	}
@@ -293,6 +389,9 @@ export function createPracticeState() {
 		get current() {
 			return current;
 		},
+		get currentPrompt() {
+			return currentPrompt;
+		},
 		get phase() {
 			return phase;
 		},
@@ -304,6 +403,9 @@ export function createPracticeState() {
 		},
 		get started() {
 			return started;
+		},
+		get audioError() {
+			return audioError;
 		},
 		get tone() {
 			return tone;

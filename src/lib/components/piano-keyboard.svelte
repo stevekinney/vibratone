@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Check, X } from 'lucide-svelte';
+	import Check from 'lucide-svelte/icons/check';
+	import X from 'lucide-svelte/icons/x';
 	import { getPracticeState } from '$lib/state.svelte';
 	import { WHITE_PITCH_CLASSES, bothSpellings, noteLabel } from '$lib/music';
 
