@@ -180,10 +180,7 @@ All routes are universal (no `+page.server.ts`). No server-side data dependencie
 ```ts
 // StaffExerciseParams (in src/routes/theory/staff/+page.ts)
 type StaffExerciseType =
-	| 'note-on-staff'
-	| 'interval-on-staff'
-	| 'scale-on-staff'
-	| 'chord-on-staff';
+	'note-on-staff' | 'interval-on-staff' | 'scale-on-staff' | 'chord-on-staff';
 
 type StaffExerciseParams = {
 	type: StaffExerciseType;

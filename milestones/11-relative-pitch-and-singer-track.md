@@ -85,11 +85,7 @@ export type ScaleDegreeSungVerdict = 'wrong-degree' | 'correct-degree' | 'uncert
 export type ScaleDegree = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 export type RpAnswerMode =
-	| 'movable-do'
-	| 'fixed-do'
-	| 'letter-name'
-	| 'scale-degree'
-	| 'microphone';
+	'movable-do' | 'fixed-do' | 'letter-name' | 'scale-degree' | 'microphone';
 
 export type TonicSetup = 'drone' | 'cadence' | 'both' | 'none';
 

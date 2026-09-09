@@ -112,7 +112,7 @@ describe('practice-card — audio errors', () => {
 			state.play();
 			render(Harness, { state });
 
-			await expect.element(page.getByRole('alert')).toHaveTextContent(/Audio is unavailable/);
+			await expect.element(page.getByRole('alert')).toMatchTextContent(/Audio is unavailable/);
 			expect(state.phase).toBe('guessing');
 		} finally {
 			Object.defineProperty(window, 'AudioContext', {

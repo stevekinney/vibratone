@@ -547,12 +547,12 @@ These produce entries in the findings artifact, not test assertions. The finding
 | Tone source name and version                                                   | getSynth() oscillator, Vibratone build SHA abc123 |
 | Chrome desktop — allow, deny, unavailable, cleanup                             | Pass / Fail + notes                               |
 | Second browser (Firefox or Safari desktop) — allow, deny, unavailable, cleanup | Pass / Fail + actual threshold values             |
-| Latency p50 and p95 (Chrome)                                                   | **_ ms / _** ms                                   |
+| Latency p50 and p95 (Chrome)                                                   | **\_ ms / _** ms                                  |
 | Cents error median over 50 tones (Chrome)                                      | \_\_\_ cents                                      |
 | Octave-error rate over 50 tones (Chrome)                                       | \_\_\_ %                                          |
 | Cents error median over 50 tones (second browser)                              | \_\_\_ cents                                      |
 | Octave-error rate over 50 tones (second browser)                               | \_\_\_ %                                          |
-| Noisy-room clarity and octave-error rate                                       | **_ / _** %                                       |
+| Noisy-room clarity and octave-error rate                                       | **\_ / _** %                                      |
 | Mobile browser latency (if available)                                          | \_\_\_ ms                                         |
 | Battery / tab suspension observation                                           | pass/note                                         |
 | GO / NO-GO conclusion                                                          | GO or NO-GO + failing metric if NO-GO             |
