@@ -65,13 +65,7 @@ Explorer usage events are distinct from scored drill attempt events. They are st
 ```ts
 export type ExplorerUsageEvent = {
 	concept:
-		| 'notes'
-		| 'keys'
-		| 'scales'
-		| 'chords'
-		| 'roman-numerals'
-		| 'harmonic-function'
-		| 'cadences';
+		'notes' | 'keys' | 'scales' | 'chords' | 'roman-numerals' | 'harmonic-function' | 'cadences';
 	action: 'viewed' | 'played-example' | 'navigated-to-drill';
 	durationMs: number;
 	timestamp: number;

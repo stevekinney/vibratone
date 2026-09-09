@@ -114,15 +114,7 @@ export type ChordToneAttemptEvent = AttemptEventBase & {
 
 ```ts
 export type ChordQuality =
-	| 'maj'
-	| 'min'
-	| 'dim'
-	| 'aug'
-	| 'dom7'
-	| 'maj7'
-	| 'min7'
-	| 'half-dim7'
-	| 'dim7';
+	'maj' | 'min' | 'dim' | 'aug' | 'dom7' | 'maj7' | 'min7' | 'half-dim7' | 'dim7';
 
 export type ChordToneLabel = 'root' | 'third' | 'fifth' | 'seventh' | 'bass';
 

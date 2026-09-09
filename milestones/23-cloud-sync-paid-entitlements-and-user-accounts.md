@@ -259,12 +259,7 @@ export type ConflictRecord = {
 // src/lib/server/billing.ts
 
 export type SubscriptionState =
-	| 'active'
-	| 'canceled'
-	| 'past-due'
-	| 'refunded'
-	| 'expired'
-	| 'grace';
+	'active' | 'canceled' | 'past-due' | 'refunded' | 'expired' | 'grace';
 
 export type EntitlementFeature =
 	| 'consumer-pro'

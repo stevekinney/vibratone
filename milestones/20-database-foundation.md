@@ -87,9 +87,7 @@ export const MAX_SUBMISSION_BYTES = 4096;
 export type ConsentState = 'unasked' | 'granted' | 'declined';
 
 export type AuditEventType =
-	| 'submission_accepted'
-	| 'submission_rejected'
-	| 'schema_version_mismatch';
+	'submission_accepted' | 'submission_rejected' | 'schema_version_mismatch';
 
 export type SessionAggregate = {
 	schema_version: number;

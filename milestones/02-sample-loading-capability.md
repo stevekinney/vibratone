@@ -575,21 +575,21 @@ All specs use `page.route('/samples/**', route => route.fulfill({ body: minimalW
 
 ### Acceptance Criterion → Test Mapping
 
-| AC       | Named Test(s)                                                                                                                                                  |
+| AC | Named Test(s) |
 | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------------------------------------- |
-| AC-02-01 | `loadSample: resolves with a decoded AudioBuffer on a valid fetch response`                                                                                    |
-| AC-02-02 | `scheduleSample: calls node.start(when) with the provided future timestamp`                                                                                    |
-| AC-02-03 | e2e: `selecting Piano timbre and pressing Play initiates a sample load`                                                                                        |
-| AC-02-04 | e2e: `a 404 on the sample URL shows a visible role=alert region…`; e2e: `note trainer remains interactive … when sample fetch is blocked`                      |
+| AC-02-01 | `loadSample: resolves with a decoded AudioBuffer on a valid fetch response` |
+| AC-02-02 | `scheduleSample: calls node.start(when) with the provided future timestamp` |
+| AC-02-03 | e2e: `selecting Piano timbre and pressing Play initiates a sample load` |
+| AC-02-04 | e2e: `a 404 on the sample URL shows a visible role=alert region…`; e2e: `note trainer remains interactive … when sample fetch is blocked` |
 | AC-02-05 | component: `Play button: has both aria-busy="true" and aria-label="Loading sample…" simultaneously`; e2e: `aria-busy is present on Play button during loading` |
-| AC-02-06 | e2e: `clicking retry after a 404 re-initiates the fetch and recovers on success`                                                                               |
-| AC-02-07 | `SampledSynth.play: uses the same AudioContext reference that was passed to load()`                                                                            |
-| AC-02-08 | `loadSample: deduplicates concurrent requests — exactly one fetch call for the same URL`                                                                       |
-| AC-02-09 | e2e: `no external network requests are made during sampled playback`                                                                                           |
-| AC-02-10 | e2e: `timbre selection persists after page reload`                                                                                                             |
-| AC-02-11 | `[MANUAL]` — human confirmation in Chrome + Safari required                                                                                                    |
-| AC-02-12 | e2e parameterised responsive smoke (phone/tablet/desktop)                                                                                                      |
-| AC-02-13 | e2e: `existing note-drill Playwright suite passes unmodified with Synth timbre active`                                                                         |
+| AC-02-06 | e2e: `clicking retry after a 404 re-initiates the fetch and recovers on success` |
+| AC-02-07 | `SampledSynth.play: uses the same AudioContext reference that was passed to load()` |
+| AC-02-08 | `loadSample: deduplicates concurrent requests — exactly one fetch call for the same URL` |
+| AC-02-09 | e2e: `no external network requests are made during sampled playback` |
+| AC-02-10 | e2e: `timbre selection persists after page reload` |
+| AC-02-11 | `[MANUAL]` — human confirmation in Chrome + Safari required |
+| AC-02-12 | e2e parameterised responsive smoke (phone/tablet/desktop) |
+| AC-02-13 | e2e: `existing note-drill Playwright suite passes unmodified with Synth timbre active` |
 | AC-02-14 | grep gate: `grep -rE "perfect pitch                                                                                                                            | guaranteed | will learn" src/` must return no matches |
 
 ## Verification
