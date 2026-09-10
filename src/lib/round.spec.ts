@@ -6,7 +6,6 @@ import {
 	clamp,
 	clampOctave,
 	createPrompt,
-	nearestOctave,
 	normalizeOctaveRange,
 	poolSize
 } from './round.ts';
@@ -153,17 +152,5 @@ describe('normalizeOctaveRange', () => {
 
 	it('allows lo === hi', () => {
 		expect(normalizeOctaveRange(4, 4)).toEqual([4, 4]);
-	});
-});
-
-describe('nearestOctave', () => {
-	it('snaps a fractional track position to the nearest stop', () => {
-		expect(nearestOctave(3.2)).toBe(3);
-		expect(nearestOctave(3.8)).toBe(4);
-	});
-
-	it('clamps positions beyond the track ends', () => {
-		expect(nearestOctave(-5)).toBe(MIN_OCTAVE);
-		expect(nearestOctave(20)).toBe(MAX_OCTAVE);
 	});
 });

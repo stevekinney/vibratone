@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Card from '@lostgradient/cinder/card';
 	import Check from 'lucide-svelte/icons/check';
 	import X from 'lucide-svelte/icons/x';
 	import { getPracticeState } from '$lib/state.svelte';
@@ -56,7 +57,7 @@
 	}
 </script>
 
-<div class="keyboard-wrapper">
+<Card class="keyboard-wrapper" padding="none">
 	<div class="keyboard" role="group" aria-label="Piano keyboard">
 		<div class="white-row">
 			{#each whiteKeys as pc (pc)}
@@ -115,14 +116,10 @@
 			</button>
 		{/each}
 	</div>
-</div>
+</Card>
 
 <style>
-	.keyboard-wrapper {
-		background: var(--cinder-surface-raised);
-		border: 1px solid var(--cinder-border);
-		border-radius: var(--cinder-radius-lg);
-		box-shadow: var(--cinder-shadow-sm);
+	:global(.keyboard-wrapper > .cinder-card__body) {
 		padding: var(--cinder-space-5);
 	}
 

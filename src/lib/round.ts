@@ -95,11 +95,3 @@ export function normalizeOctaveRange(lo: number, hi: number): [number, number] {
 	const b = clampOctave(hi);
 	return a <= b ? [a, b] : [b, a];
 }
-
-/**
- * The octave stop nearest to a fractional position, used when the slider track
- * is clicked between stops.
- */
-export function nearestOctave(position: number): number {
-	return clampOctave(position);
-}
