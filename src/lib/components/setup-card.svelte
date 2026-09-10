@@ -1,6 +1,10 @@
 <script lang="ts">
+	import Button from '@lostgradient/cinder/button';
 	import Card from '@lostgradient/cinder/card';
+	import FormField from '@lostgradient/cinder/form-field';
 	import Select from '@lostgradient/cinder/select';
+	import Slider from '@lostgradient/cinder/slider';
+	import { MAX_OCTAVE, MIN_OCTAVE } from '$lib/round';
 	import { getPracticeState } from '$lib/state.svelte';
 	import {
 		KEYS,
@@ -9,7 +13,6 @@
 		noteLabel,
 		scalePitchClassSet
 	} from '$lib/music';
-	import OctaveRangeSlider from './octave-range-slider.svelte';
 
 	const state = getPracticeState();
 
@@ -41,6 +44,11 @@
 	function handleKeyChange(event: Event) {
 		state.setKey((event.currentTarget as HTMLSelectElement).value);
 	}
+
+	const octaveCount = $derived(state.octaveHi - state.octaveLo + 1);
+	const octaveHint = $derived(
+		`${state.available} possible ${state.available === 1 ? 'note' : 'notes'} across ${octaveCount} ${octaveCount === 1 ? 'octave' : 'octaves'}.`
+	);
 </script>
 
 <Card title="Setup">
@@ -63,12 +71,12 @@
 					{@const on = state.eligibleNotes.has(pc)}
 					{@const black = isBlackPitchClass(pc)}
 					{@const [sharp, flat] = bothSpellings(pc)}
-					<button
-						type="button"
-						class="chip"
-						class:on
-						class:tonic={isTonic(pc)}
-						class:dimmed={!inKey(pc)}
+					<Button
+						variant={on ? 'soft' : 'secondary'}
+						size="sm"
+						class={['chip', isTonic(pc) && 'tonic', !inKey(pc) && 'dimmed']
+							.filter(Boolean)
+							.join(' ')}
 						aria-pressed={on}
 						aria-label={state.key.tonicPc === null && black ? `${sharp} or ${flat}` : undefined}
 						onclick={() => state.toggleNote(pc)}
@@ -82,32 +90,30 @@
 						{:else}
 							{noteLabel(pc, state.spelling)}
 						{/if}
-					</button>
+					</Button>
 				{/each}
 			</div>
 			{#if state.key.tonicPc !== null}
-				<button type="button" class="match-key" onclick={() => state.matchKey()}>
+				<Button variant="ghost" size="xs" class="match-key" onclick={() => state.matchKey()}>
 					Match key
-				</button>
+				</Button>
 			{/if}
 		</div>
 
 		<div class="field">
-			<div class="field-header">
-				<span class="field-label">Octaves</span>
-				<span class="octave-readout">{state.octaveLabel}</span>
-			</div>
-			<OctaveRangeSlider
-				lo={state.octaveLo}
-				hi={state.octaveHi}
-				onchange={(lo, hi) => state.setOctaves(lo, hi)}
-			/>
-			<p class="hint">
-				{state.available} possible {state.available === 1 ? 'note' : 'notes'} across {state.octaveHi -
-					state.octaveLo +
-					1}
-				{state.octaveHi - state.octaveLo + 1 === 1 ? 'octave' : 'octaves'}.
-			</p>
+			<FormField id="octaves" label="Octaves" description={octaveHint}>
+				<Slider
+					mode="range"
+					label="Octaves"
+					min={MIN_OCTAVE}
+					max={MAX_OCTAVE}
+					step={1}
+					ticks
+					valueText={(value) => `C${value}`}
+					value={[state.octaveLo, state.octaveHi]}
+					onValueChange={([lo, hi]) => state.setOctaves(lo, hi)}
+				/>
+			</FormField>
 		</div>
 	</div>
 </Card>
@@ -125,22 +131,10 @@
 		gap: var(--cinder-space-2);
 	}
 
-	.field-header {
-		display: flex;
-		align-items: baseline;
-		justify-content: space-between;
-	}
-
 	.field-label {
 		font-size: var(--cinder-text-sm);
 		font-weight: var(--cinder-font-medium);
 		color: var(--cinder-text);
-	}
-
-	.octave-readout {
-		font-size: var(--cinder-text-sm);
-		color: var(--cinder-text-muted);
-		font-variant-numeric: tabular-nums;
 	}
 
 	.hint {
@@ -155,36 +149,16 @@
 		gap: var(--cinder-space-1-5);
 	}
 
-	.chip {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
+	.chips :global(.chip) {
 		min-width: 38px;
-		min-height: 32px;
-		padding: var(--cinder-space-1) var(--cinder-space-2-5);
-		border: 1px solid var(--cinder-border);
-		border-radius: var(--cinder-radius-md);
-		background: var(--cinder-surface-inset);
-		color: var(--cinder-text-muted);
-		font-size: var(--cinder-text-sm);
 		font-variant-numeric: tabular-nums;
-		cursor: pointer;
-		transition:
-			background var(--cinder-duration-fast) var(--cinder-ease-standard),
-			color var(--cinder-duration-fast) var(--cinder-ease-standard);
 	}
 
-	.chip.on {
-		background: color-mix(in oklch, var(--cinder-accent), transparent 84%);
-		color: var(--cinder-accent-text);
-		border-color: color-mix(in oklch, var(--cinder-accent), transparent 60%);
-	}
-
-	.chip.dimmed {
+	.chips :global(.chip.dimmed) {
 		opacity: 0.45;
 	}
 
-	.chip.tonic {
+	.chips :global(.chip.tonic) {
 		text-decoration: underline;
 		text-decoration-color: var(--cinder-accent);
 		text-underline-offset: 3px;
@@ -212,22 +186,12 @@
 		color: var(--cinder-text-muted);
 	}
 
-	.match-key {
+	.field :global(.match-key) {
 		align-self: flex-start;
-		padding: 0;
-		border: none;
-		background: none;
-		color: var(--cinder-accent-text);
-		font-size: var(--cinder-text-xs);
-		cursor: pointer;
-	}
-
-	.match-key:hover {
-		text-decoration: underline;
 	}
 
 	@media (pointer: coarse) {
-		.chip {
+		.chips :global(.chip) {
 			min-width: var(--cinder-touch-target-min);
 			min-height: var(--cinder-touch-target-min);
 		}

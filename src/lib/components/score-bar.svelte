@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Flame from 'lucide-svelte/icons/flame';
 	import Button from '@lostgradient/cinder/button';
+	import Card from '@lostgradient/cinder/card';
 	import { getPracticeState } from '$lib/state.svelte';
 
 	const state = getPracticeState();
@@ -11,7 +12,7 @@
 	}
 </script>
 
-<div class="score-bar">
+<Card class="score-bar" padding="none">
 	<div class="stats">
 		<div class="stat">
 			<span class="stat-label">This session</span>
@@ -54,19 +55,15 @@
 			onclick={() => state.resetAllTime()}>All time</Button
 		>
 	</div>
-</div>
+</Card>
 
 <style>
-	.score-bar {
+	:global(.score-bar > .cinder-card__body) {
 		display: flex;
 		justify-content: space-between;
 		flex-wrap: wrap;
 		gap: var(--cinder-space-4);
 		align-items: center;
-		background: var(--cinder-surface-raised);
-		border: 1px solid var(--cinder-border);
-		border-radius: var(--cinder-radius-lg);
-		box-shadow: var(--cinder-shadow-sm);
 		padding: var(--cinder-space-3) var(--cinder-space-5);
 	}
 

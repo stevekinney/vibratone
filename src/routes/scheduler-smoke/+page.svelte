@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Alert from '@lostgradient/cinder/alert';
+	import Button from '@lostgradient/cinder/button';
 	import Card from '@lostgradient/cinder/card';
 	import { onDestroy, onMount } from 'svelte';
 	import Play from 'lucide-svelte/icons/play';
@@ -176,32 +178,28 @@
 			<p class="eyebrow">Scheduler Smoke</p>
 			<h1>Lookahead audio scheduler</h1>
 			<div class="controls">
-				<button
-					type="button"
-					class="control"
-					disabled={playDisabled}
-					onclick={playSequence}
-					aria-label="Play 16-note diatonic sequence"
-				>
-					<Play size={18} fill="currentColor" aria-hidden="true" />
+				<Button variant="primary" class="control" disabled={playDisabled} onclick={playSequence}>
+					{#snippet leadingIcon()}
+						<Play size={18} fill="currentColor" />
+					{/snippet}
 					Play 16-note diatonic sequence
-				</button>
-				<button
-					type="button"
-					class="control secondary"
+				</Button>
+				<Button
+					variant="secondary"
+					class="control"
 					disabled={stopDisabled}
 					onclick={stopSequence}
 					aria-label="Stop sequence"
 				>
-					<Square size={16} fill="currentColor" aria-hidden="true" />
+					{#snippet leadingIcon()}
+						<Square size={16} fill="currentColor" />
+					{/snippet}
 					Stop
-				</button>
+				</Button>
 			</div>
-			<div class="alert" role="alert">
-				{#if audioError}
-					{audioError}
-				{/if}
-			</div>
+			{#if audioError}
+				<Alert variant="danger">{audioError}</Alert>
+			{/if}
 		</div>
 	</Card>
 </main>
@@ -245,39 +243,8 @@
 		gap: var(--cinder-space-3);
 	}
 
-	.control {
+	.controls :global(.control) {
 		min-height: var(--cinder-touch-target-min);
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		gap: var(--cinder-space-2);
-		padding: 0 var(--cinder-space-4);
-		border: 1px solid var(--cinder-accent);
-		border-radius: var(--cinder-radius-md);
-		background: var(--cinder-accent);
-		color: var(--cinder-accent-contrast);
-		font: inherit;
-		font-weight: var(--cinder-font-medium);
-		cursor: pointer;
-	}
-
-	.control.secondary {
-		background: var(--cinder-surface-raised);
-		color: var(--cinder-text);
-		border-color: var(--cinder-border);
-	}
-
-	.control:disabled {
-		background: var(--cinder-fill-disabled);
-		border-color: var(--cinder-border);
-		color: var(--cinder-text-disabled);
-		cursor: not-allowed;
-	}
-
-	.alert {
-		min-height: 22px;
-		color: var(--cinder-color-danger-fg);
-		font-size: var(--cinder-text-sm);
 	}
 
 	@media (max-width: 460px) {
@@ -285,8 +252,11 @@
 			padding: var(--cinder-space-5);
 		}
 
-		.controls,
-		.control {
+		.controls {
+			width: 100%;
+		}
+
+		.controls :global(.control) {
 			width: 100%;
 		}
 	}

@@ -118,9 +118,6 @@ export function createPracticeState(seed: string | null = null) {
 	const eligibleCount = $derived(eligibleNotes.size);
 	const available = $derived(poolSize(eligibleNotes, octaveLo, octaveHi));
 	const canPlay = $derived(available > 0);
-	const octaveLabel = $derived(
-		octaveLo === octaveHi ? `C${octaveLo}` : `C${octaveLo}–C${octaveHi}`
-	);
 	const current = $derived<Pitch | null>(
 		currentPrompt ? { pc: currentPrompt.pitchClass, octave: currentPrompt.octave } : null
 	);
@@ -356,9 +353,6 @@ export function createPracticeState(seed: string | null = null) {
 		},
 		get octaveHi() {
 			return octaveHi;
-		},
-		get octaveLabel() {
-			return octaveLabel;
 		},
 		get eligibleCount() {
 			return eligibleCount;

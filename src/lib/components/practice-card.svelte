@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Alert from '@lostgradient/cinder/alert';
+	import Button from '@lostgradient/cinder/button';
 	import Card from '@lostgradient/cinder/card';
 	import Check from 'lucide-svelte/icons/check';
 	import Play from 'lucide-svelte/icons/play';
@@ -51,15 +53,21 @@
 		<p class="status" data-tone={statusTone}>{statusText}</p>
 
 		{#if state.audioError}
-			<div class="audio-error" role="alert">
-				{state.audioError}
-			</div>
+			<Alert variant="danger" class="audio-error">{state.audioError}</Alert>
 		{/if}
 
-		<button type="button" class="replay" disabled={!state.current} onclick={() => state.replay()}>
-			<RotateCcw size={16} strokeWidth={1.5} />
+		<Button
+			variant="secondary"
+			size="sm"
+			class="replay"
+			disabled={!state.current}
+			onclick={() => state.replay()}
+		>
+			{#snippet leadingIcon()}
+				<RotateCcw size={16} strokeWidth={1.5} />
+			{/snippet}
 			Replay
-		</button>
+		</Button>
 
 		<div class="reveal" aria-live="polite">
 			{#if revealed}
@@ -183,35 +191,8 @@
 		color: var(--cinder-text);
 	}
 
-	.audio-error {
-		min-height: 20px;
-		font-size: var(--cinder-text-sm);
-		color: var(--cinder-color-danger-fg);
+	.practice :global(.audio-error) {
 		text-align: center;
-	}
-
-	.replay {
-		display: inline-flex;
-		align-items: center;
-		gap: var(--cinder-space-2);
-		min-height: var(--cinder-control-height-sm);
-		padding: 0 var(--cinder-space-4);
-		border: 1px solid var(--cinder-border);
-		border-radius: var(--cinder-radius-full);
-		background: var(--cinder-surface-raised);
-		color: var(--cinder-text-muted);
-		font-size: var(--cinder-text-sm);
-		cursor: pointer;
-		transition: background var(--cinder-duration-fast) var(--cinder-ease-standard);
-	}
-
-	.replay:hover:not(:disabled) {
-		background: var(--cinder-surface-hover);
-	}
-
-	.replay:disabled {
-		color: var(--cinder-text-disabled);
-		cursor: not-allowed;
 	}
 
 	.reveal {
@@ -285,7 +266,7 @@
 	}
 
 	@media (pointer: coarse) {
-		.replay {
+		.practice :global(.replay) {
 			min-height: var(--cinder-touch-target-min);
 		}
 	}
