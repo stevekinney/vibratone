@@ -9,7 +9,14 @@
 	import SegmentedControl, { Segment } from '@lostgradient/cinder/segmented-control';
 	import Check from 'lucide-svelte/icons/check';
 	import Select from '@lostgradient/cinder/select';
-	import { KEYS, bothSpellings, isBlackPitchClass, keyById, noteLabel } from '$lib/music';
+	import {
+		KEYS,
+		bothSpellings,
+		isBlackPitchClass,
+		keyById,
+		noteLabel,
+		scalePitchClassSet
+	} from '$lib/music';
 
 	interface Props {
 		keyId: string;
@@ -37,6 +44,10 @@
 	const eligibleSet = $derived(new Set(eligibleNotes));
 	const eligibleSelection = $derived(new SvelteSet([...eligibleNotes].map(String)));
 	const isChromatic = $derived(key.tonicPc === null);
+	const keyNotes = $derived(scalePitchClassSet(key));
+	const matchesKey = $derived(
+		eligibleSet.size === keyNotes.size && [...keyNotes].every((note) => eligibleSet.has(note))
+	);
 	function toggleNoteFromSegment() {
 		const pitchClass = pitchClasses.find(
 			(note) => eligibleSelection.has(String(note)) !== eligibleSet.has(note)
@@ -56,15 +67,19 @@
 				value={keyId}
 				onchange={(event) => onKeyChange(event.currentTarget.value)}
 			/>
-			{#if !isChromatic}
-				<Button variant="secondary" size="sm" class="match-key" onclick={onResetNotes}>
-					Reset notes to {key.label}
-				</Button>
-			{/if}
 		</div>
 
 		<div class="field">
-			<span id={`${idPrefix}-eligible-label`} class="field-label">Eligible notes</span>
+			<div class="notes-heading">
+				<span id={`${idPrefix}-eligible-label`} class="field-label">Eligible notes</span>
+				<Button
+					variant="secondary"
+					size="sm"
+					class={matchesKey ? 'match-key concealed' : 'match-key'}
+					aria-label={`Reset notes to ${key.label}`}
+					onclick={onResetNotes}>Reset</Button
+				>
+			</div>
 			<SegmentedControl
 				class="notes4small"
 				detached
@@ -173,8 +188,15 @@
 		font-size: var(--cinder-text-xs);
 	}
 
-	.field :global(.match-key) {
-		align-self: flex-start;
+	.notes-heading {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--cinder-space-2);
+	}
+
+	.notes-heading :global(.concealed) {
+		visibility: hidden;
 	}
 
 	.empty-scope {

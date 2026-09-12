@@ -151,17 +151,33 @@ for (const viewport of viewports) {
 
 		await page.getByLabel('Key', { exact: true }).selectOption('F');
 		const reset = page.getByRole('button', { name: 'Reset notes to F Major' });
-		await expect(reset).toHaveAttribute('data-cinder-variant', 'secondary');
-		expect(
-			await reset.evaluate((element) => Boolean(element.closest('.field')?.querySelector('select')))
-		).toBe(true);
+		await expect(reset).toBeHidden();
+		const beforeResetAppears = await page.locator('.octave-field').evaluate((element) => ({
+			top: element.getBoundingClientRect().top + window.scrollY,
+			height: element.getBoundingClientRect().height
+		}));
 		const eligible = page.getByRole('group', { name: 'Eligible notes' });
 		const cNote = eligible.getByRole('button', { name: 'C', exact: true });
 		await expect(eligible.getByRole('button', { pressed: true })).toHaveCount(7);
 		await cNote.click();
 		await expect(cNote).toHaveAttribute('aria-pressed', 'false');
 		await expect(eligible.getByRole('button', { pressed: true })).toHaveCount(6);
+		await expect(reset).toBeVisible();
+		await expect(reset).toHaveAttribute('data-cinder-variant', 'secondary');
+		expect(
+			await page.locator('.octave-field').evaluate((element) => ({
+				top: element.getBoundingClientRect().top + window.scrollY,
+				height: element.getBoundingClientRect().height
+			}))
+		).toEqual(beforeResetAppears);
 		await reset.click();
+		await expect(reset).toBeHidden();
+		expect(
+			await page.locator('.octave-field').evaluate((element) => ({
+				top: element.getBoundingClientRect().top + window.scrollY,
+				height: element.getBoundingClientRect().height
+			}))
+		).toEqual(beforeResetAppears);
 		await expect(cNote).toHaveAttribute('aria-pressed', 'true');
 		await expect(eligible.getByRole('button', { pressed: true })).toHaveCount(7);
 		const octaveHeading = await page.locator('.octave-field').evaluate((element) => {

@@ -93,7 +93,7 @@ test('limits targets to the selected key and handles an empty eligible-note sele
 	await page.goto('/fretboard');
 
 	await page.getByLabel('Key', { exact: true }).selectOption('G');
-	await expect(page.getByRole('button', { name: 'Reset notes to G Major' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Reset notes to G Major' })).toBeHidden();
 	await expect(eligibleNotes(page).getByRole('button', { pressed: true })).toHaveCount(7);
 	await expect(eligibleNotes(page).getByRole('button', { pressed: false })).toHaveCount(5);
 
