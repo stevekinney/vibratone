@@ -3,6 +3,6 @@ import type { PageLoad } from './$types';
 
 export const load: PageLoad = () => {
 	if (!import.meta.env.DEV) {
-		redirect(307, '/');
+		redirect(307, '/ear-training');
 	}
 };

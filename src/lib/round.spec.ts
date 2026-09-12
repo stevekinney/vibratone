@@ -67,28 +67,27 @@ describe('createPrompt', () => {
 		expect(prompt).toEqual({ pc: 4, octave: 4 });
 	});
 
-	it('avoids repeating the previous pitch when alternatives exist', () => {
-		const previous = { pc: 0, octave: 4 };
-		const prompt = createPrompt({
-			eligiblePitchClasses: [0, 4],
+	it('allows a repeated pitch when independent draws select it', () => {
+		const options = {
+			eligiblePitchClasses: [0, 4] as const,
 			octaveLo: 4,
 			octaveHi: 4,
-			previous,
-			// Index into the filtered candidate list (previous removed).
 			randomInt: () => 0
-		});
-		expect(prompt).toEqual({ pc: 4, octave: 4 });
+		};
+
+		expect(createPrompt(options)).toEqual({ pc: 0, octave: 4 });
+		expect(createPrompt(options)).toEqual({ pc: 0, octave: 4 });
 	});
 
-	it('repeats the previous pitch when it is the only option', () => {
-		const previous = { pc: 0, octave: 4 };
-		const prompt = createPrompt({
-			eligiblePitchClasses: [0],
+	it('can reach both eligible pitches', () => {
+		const options = {
+			eligiblePitchClasses: [0, 4] as const,
 			octaveLo: 4,
-			octaveHi: 4,
-			previous
-		});
-		expect(prompt).toEqual({ pc: 0, octave: 4 });
+			octaveHi: 4
+		};
+
+		expect(createPrompt({ ...options, randomInt: () => 0 })).toEqual({ pc: 0, octave: 4 });
+		expect(createPrompt({ ...options, randomInt: () => 1 })).toEqual({ pc: 4, octave: 4 });
 	});
 
 	it('clamps an out-of-bounds random index back into range', () => {
@@ -99,21 +98,6 @@ describe('createPrompt', () => {
 			randomInt: () => 99
 		});
 		expect(prompt).toEqual({ pc: 4, octave: 4 });
-	});
-
-	it('never returns the previous pitch across a full sweep of indices', () => {
-		const previous = { pc: 4, octave: 4 };
-		const eligible = [0, 4, 7];
-		for (let index = 0; index < eligible.length; index++) {
-			const prompt = createPrompt({
-				eligiblePitchClasses: eligible,
-				octaveLo: 4,
-				octaveHi: 4,
-				previous,
-				randomInt: () => index
-			});
-			expect(prompt).not.toEqual(previous);
-		}
 	});
 });
 

@@ -49,6 +49,12 @@ test('scheduler-smoke supports keyboard play and stop', async ({ page }) => {
 
 	await expect(play).toBeEnabled();
 	await page.keyboard.press('Tab');
+	await expect(page.getByRole('link', { name: 'Ear training', exact: true })).toBeFocused();
+	await page.keyboard.press('Tab');
+	await expect(page.getByRole('link', { name: 'Key signatures', exact: true })).toBeFocused();
+	await page.keyboard.press('Tab');
+	await expect(page.getByRole('link', { name: 'Fretboard', exact: true })).toBeFocused();
+	await page.keyboard.press('Tab');
 	await expect(play).toBeFocused();
 	await page.keyboard.press('Enter');
 	await expect(stop).toBeEnabled();
@@ -78,7 +84,7 @@ test('scheduler-smoke cleans up when navigating away', async ({ page }) => {
 	await page.goto('/scheduler-smoke');
 
 	await page.getByRole('button', { name: 'Play 16-note diatonic sequence' }).click();
-	await page.goto('/');
+	await page.goto('/ear-training');
 
 	expect(errors).toEqual([]);
 });

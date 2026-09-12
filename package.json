@@ -42,9 +42,10 @@
 		"vitest-browser-svelte": "^3.1.0"
 	},
 	"dependencies": {
-		"@lostgradient/cinder": "0.25.1",
+		"@lostgradient/cinder": "0.26.0",
 		"lucide-svelte": "1.0.1",
 		"octavian": "3.1.0",
+		"vexflow": "5.0.0",
 		"web-audio-api": "^1.5.6"
 	}
 }

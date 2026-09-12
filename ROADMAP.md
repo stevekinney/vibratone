@@ -111,6 +111,25 @@ Vibratone should state these caveats plainly. The brand should be "serious and h
 
 **No auth before shared identity is unavoidable.** Accounts are reserved for sync, paid entitlements, cloud classrooms, community surfaces, and authenticated research data.
 
+## Cinder adoption follow-up
+
+Audited 2026-09-12 against installed and latest published `@lostgradient/cinder@0.26.0`. Adopt the following APIs as stable releases become available; each row can ship independently. The linked release gate records package versions and consumer evidence. MusicNotation, Fretboard, and PianoKeyboard stay local to Vibratone: they are application-specific and should evolve without a Cinder publish/release cycle. Their upstream proposals (CIN-621, CIN-622, and CIN-623) were canceled on 2026-09-12.
+
+| Request                                                                                                                                              | Replace or simplify after release                                                                                                         | Preserve during adoption                                                                 |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| [CIN-619](https://linear.app/lost-gradient/issue/CIN-619/add-a-compact-size-to-choicegrid-for-answer-and-multi-select-controls): compact ChoiceGrid  | Button grids in `src/lib/components/note-scope.svelte`, `src/routes/fretboard/+page.svelte`, and `src/routes/key-signatures/+page.svelte` | Empty/nonadjacent selections, answer scoring, disabled states, responsive touch targets. |
+| [CIN-620](https://linear.app/lost-gradient/issue/CIN-620/support-compact-slider-labels-and-formatted-values-through-the-public): Slider presentation | Private Slider/FormField CSS overrides in `src/lib/components/setup-card.svelte` and `src/routes/fretboard/+page.svelte`                  | Compact labels, formatted summaries, range clamping, distinct accessible thumb names.    |
+
+Publication evidence is tracked in [CIN-624](https://linear.app/lost-gradient/issue/CIN-624/verify-published-cinder-instrument-and-compact-control-apis-for), natively blocked by the two generic-control feature tickets and [CIN-625](https://linear.app/lost-gradient/issue/CIN-625), which fixes Slider thumbs protruding beyond the control bounds. Verify endpoint alignment in both directions after that release. A merged feature is not a published API. Adopt each independently when its stable package artifact is verified; the aggregate gate stays open until every row has evidence.
+
+- [ ] Record the exact released version and exported API for each adopted row. Inspect `npm view @lostgradient/cinder@<version> version dist.integrity gitHead --json` and the artifact from `npm pack @lostgradient/cinder@<version> --json`, substituting the numeric version. Cinder's source consumer validator alone does not prove registry contents.
+- [ ] Upgrade with `bun add --exact @lostgradient/cinder@<version>`, update direct call sites, and remove replaced control CSS after parity checks pass. Keep the local instrument components, notation types, and direct `vexflow` dependency.
+- [ ] Keep exercise generation, key/note/string/octave/fret scoping, scoring, audio, and saved-tuning storage in Vibratone. Reuse public Cinder primitives inside those compositions.
+- [ ] Run `bun run check`, `bun run lint`, `bun run test:unit -- --run`, `bun run test:e2e:production`, and `bun run test:e2e:development`. Verify 320/768/1280-pixel layouts in both themes, keyboard interaction, hydration, and the row-specific behavior above.
+- [ ] Mark adopted rows with the installed version and verification evidence; leave unshipped rows unchecked.
+
+Already available in 0.26.0: NavigationBar's responsive menu, Card footers, FormField, CheckboxGroup, ChoiceGrid multiple selection, and SegmentedControl multiple/detached/small controls. Prefer those APIs today. The ChoiceGrid request adds compact presentation to its existing selection and grading behavior; it does not introduce another toggle-group component.
+
 ## Engine and Feasibility Spike
 
 This is a prerequisite before broad feature work. It prevents later roadmap work from accumulating schema and timing debt.

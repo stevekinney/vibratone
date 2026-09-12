@@ -21,8 +21,6 @@ export type CreatePromptOptions = {
 	/** Inclusive octave bounds; assumed `octaveLo <= octaveHi`. */
 	octaveLo: number;
 	octaveHi: number;
-	/** The pitch played last round, if any — avoided when the pool allows. */
-	previous?: Pitch | null;
 	/** Injectable randomness for deterministic tests. */
 	randomInt?: RandomInt;
 };
@@ -55,25 +53,18 @@ export function poolSize(
 	return count * Math.max(0, octaveHi - octaveLo + 1);
 }
 
-function samePitch(a: Pitch, b: Pitch): boolean {
-	return a.pc === b.pc && a.octave === b.octave;
-}
-
 /**
- * Pick a uniformly random pitch from the eligible pool. When more than one
- * pitch is available, the previous pitch is excluded so the same note never
- * repeats back-to-back. Returns `null` when the pool is empty.
+ * Pick a uniformly random pitch from the eligible pool. Each call is
+ * independent, so a pitch may repeat when the random draw selects it again.
+ * Returns `null` when the pool is empty.
  */
 export function createPrompt(options: CreatePromptOptions): Pitch | null {
-	const { octaveLo, octaveHi, previous = null, randomInt = defaultRandomInt } = options;
+	const { octaveLo, octaveHi, randomInt = defaultRandomInt } = options;
 	const pool = buildPool(options.eligiblePitchClasses, octaveLo, octaveHi);
 	if (pool.length === 0) return null;
 
-	const candidates =
-		previous && pool.length > 1 ? pool.filter((pitch) => !samePitch(pitch, previous)) : pool;
-
-	const index = randomInt(candidates.length);
-	return candidates[Math.min(Math.max(index, 0), candidates.length - 1)];
+	const index = randomInt(pool.length);
+	return pool[Math.min(Math.max(index, 0), pool.length - 1)];
 }
 
 /** Clamp `value` to `[min, max]`. */

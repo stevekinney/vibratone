@@ -158,17 +158,11 @@ export function createPracticeState(seed: string | null = null) {
 		const config = drillConfig();
 		const key = sequenceKey(config);
 		if (key !== promptSequenceKey) {
-			const previousPrompt = currentPrompt
-				? { pc: currentPrompt.pitchClass, octave: currentPrompt.octave }
-				: null;
-			promptSequence = createSeededSession(config, undefined, promptOrdinal, previousPrompt);
+			promptSequence = createSeededSession(config, undefined, promptOrdinal);
 			promptSequenceIndex = 0;
 			promptSequenceKey = key;
 		} else if (promptSequenceIndex >= promptSequence.length) {
-			const previousPrompt = currentPrompt
-				? { pc: currentPrompt.pitchClass, octave: currentPrompt.octave }
-				: null;
-			promptSequence = createSeededSession(config, undefined, promptOrdinal, previousPrompt);
+			promptSequence = createSeededSession(config, undefined, promptOrdinal);
 			promptSequenceIndex = 0;
 		}
 		const prompt = promptSequence[promptSequenceIndex++] ?? null;

@@ -57,7 +57,7 @@
 	}
 </script>
 
-<Card class="keyboard-wrapper" padding="none">
+<Card class="keyboard-wrapper" padding="none" elevation="none">
 	<div class="keyboard" role="group" aria-label="Piano keyboard">
 		<div class="white-row">
 			{#each whiteKeys as pc (pc)}
@@ -132,6 +132,9 @@
 	.white-row {
 		display: flex;
 		gap: 0;
+		border: 1px solid oklch(48% 0.015 245);
+		border-radius: 0 0 var(--cinder-radius-md) var(--cinder-radius-md);
+		overflow: hidden;
 	}
 
 	.white-key {
@@ -144,27 +147,28 @@
 		align-items: center;
 		gap: var(--cinder-space-1);
 		padding-bottom: var(--cinder-space-2);
-		border: 1px solid var(--cinder-border);
-		border-radius: 0 0 var(--cinder-radius-md) var(--cinder-radius-md);
-		background: var(--cinder-surface-raised);
-		color: var(--cinder-text-muted);
+		border: 0;
+		border-right: 1px solid oklch(48% 0.015 245);
+		border-radius: 0;
+		background: light-dark(oklch(98% 0.005 245), oklch(88% 0.015 245));
+		color: oklch(22% 0.025 245);
 		font-size: var(--cinder-text-sm);
 		font-variant-numeric: tabular-nums;
 		cursor: pointer;
 		transition: background var(--cinder-duration-fast) var(--cinder-ease-standard);
 	}
 
-	.white-key + .white-key {
-		border-left: none;
+	.white-key:last-child {
+		border-right: 0;
 	}
 
 	.white-key:hover:not(:disabled) {
-		background: var(--cinder-surface-hover);
+		background: light-dark(oklch(92% 0.015 245), oklch(96% 0.01 245));
 	}
 
 	.white-key.disabled {
-		background: var(--cinder-surface-inset);
-		color: var(--cinder-text-disabled);
+		background: light-dark(oklch(88% 0.005 245), oklch(73% 0.012 245));
+		color: oklch(43% 0.01 245);
 		cursor: not-allowed;
 	}
 
@@ -180,7 +184,7 @@
 		align-items: center;
 		gap: var(--cinder-space-1);
 		padding-bottom: var(--cinder-space-1);
-		border: none;
+		border: 1px solid light-dark(oklch(48% 0.02 245), oklch(55% 0.025 245));
 		border-radius: 0 0 var(--cinder-radius-sm) var(--cinder-radius-sm);
 		background: light-dark(oklch(30% 0.02 245), oklch(14% 0.025 245));
 		color: light-dark(oklch(96% 0.005 245), oklch(86% 0.02 245));
@@ -191,21 +195,21 @@
 	}
 
 	.black-key.disabled {
-		background: light-dark(oklch(74% 0.012 245), oklch(32% 0.03 245));
-		color: light-dark(oklch(52% 0.01 245), oklch(54% 0.02 245));
+		background: oklch(28% 0.015 245);
+		color: oklch(70% 0.01 245);
 		cursor: not-allowed;
 	}
 
 	.white-key[data-reveal='correct'],
 	.black-key[data-reveal='correct'] {
-		background: var(--cinder-success);
-		color: var(--cinder-success-contrast);
+		background: var(--cinder-status-success-solid);
+		color: var(--cinder-status-success-contrast);
 	}
 
 	.white-key[data-reveal='wrong'],
 	.black-key[data-reveal='wrong'] {
-		background: var(--cinder-danger);
-		color: var(--cinder-danger-contrast);
+		background: var(--cinder-status-danger-solid);
+		color: var(--cinder-status-danger-contrast);
 	}
 
 	.key-label {
@@ -221,7 +225,7 @@
 		width: 6px;
 		height: 6px;
 		border-radius: var(--cinder-radius-full);
-		background: var(--cinder-accent);
+		background: var(--cinder-accent-solid);
 	}
 
 	.mark {
@@ -233,11 +237,11 @@
 	}
 
 	.mark-correct {
-		color: var(--cinder-success-contrast);
+		color: var(--cinder-status-success-contrast);
 	}
 
 	.mark-wrong {
-		color: var(--cinder-danger-contrast);
+		color: var(--cinder-status-danger-contrast);
 	}
 
 	@media (pointer: coarse) {

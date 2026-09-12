@@ -6,6 +6,8 @@ export default defineConfig({
 	plugins: [sveltekit()],
 	optimizeDeps: {
 		include: [
+			'vexflow/bravura',
+			'@lostgradient/cinder/dropdown',
 			'lucide-svelte/icons/activity',
 			'lucide-svelte/icons/check',
 			'lucide-svelte/icons/flame',
@@ -14,6 +16,15 @@ export default defineConfig({
 			'lucide-svelte/icons/square',
 			'lucide-svelte/icons/x'
 		]
+	},
+	build: {
+		rolldownOptions: {
+			output: {
+				codeSplitting: {
+					groups: [{ name: 'notation-fonts', test: /vexflow\/build\/esm\/src\/fonts\// }]
+				}
+			}
+		}
 	},
 	ssr: {
 		noExternal: ['lucide-svelte']

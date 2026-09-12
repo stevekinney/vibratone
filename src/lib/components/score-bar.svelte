@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Flame from 'lucide-svelte/icons/flame';
-	import Button from '@lostgradient/cinder/button';
 	import Card from '@lostgradient/cinder/card';
+	import { Dropdown } from '@lostgradient/cinder/dropdown';
 	import { getPracticeState } from '$lib/state.svelte';
 
 	const state = getPracticeState();
@@ -12,145 +12,118 @@
 	}
 </script>
 
-<Card class="score-bar" padding="none">
-	<div class="stats">
+<Card class="score-bar" padding="none" elevation="none">
+	<dl class="stats">
 		<div class="stat">
-			<span class="stat-label">This session</span>
-			<span class="stat-value">{displayPercent(state.sessionPercent, state.session.total)}</span>
-			<span class="stat-detail">
-				<span class="fraction">{state.session.correct}/{state.session.total}</span>
-				<span
-					class="streak-group"
-					role="img"
-					aria-label="Streak: {state.session.streak}, best: {state.session.best}"
-				>
-					<span class="streak-icon" aria-hidden="true"><Flame size={12} strokeWidth={2} /></span>
-					<span class="streak-current" aria-hidden="true">{state.session.streak}</span>
-					<span class="streak-best" aria-hidden="true">best {state.session.best}</span>
-				</span>
-			</span>
+			<dt class="stat-label">This session</dt>
+			<dd class="stat-value">{displayPercent(state.sessionPercent, state.session.total)}</dd>
+			<dd class="stat-detail">{state.session.correct} of {state.session.total} correct</dd>
 		</div>
-
-		<div class="stat stat-secondary">
-			<span class="stat-label">All time</span>
-			<span class="stat-value">{displayPercent(state.allTimePercent, state.allTime.total)}</span>
-			<span class="stat-detail">
-				<span class="fraction">{state.allTime.correct}/{state.allTime.total}</span>
-			</span>
+		<div class="stat">
+			<dt class="stat-label">Current streak</dt>
+			<dd class="stat-value streak-value">
+				<Flame size={20} strokeWidth={1.5} aria-hidden="true" />
+				{state.session.streak}
+			</dd>
+			<dd class="stat-detail">correct in a row</dd>
 		</div>
-	</div>
+		<div class="stat">
+			<dt class="stat-label">Best streak</dt>
+			<dd class="stat-value">{state.session.best}</dd>
+			<dd class="stat-detail">this session</dd>
+		</div>
+		<div class="stat">
+			<dt class="stat-label">All time</dt>
+			<dd class="stat-value">{displayPercent(state.allTimePercent, state.allTime.total)}</dd>
+			<dd class="stat-detail">{state.allTime.correct} of {state.allTime.total} correct</dd>
+		</div>
+	</dl>
 
-	<div class="actions">
-		<span class="reset-label" aria-hidden="true">Reset</span>
-		<Button
-			variant="ghost"
-			size="xs"
-			aria-label="Reset session"
-			onclick={() => state.resetSession()}>Session</Button
-		>
-		<Button
-			variant="ghost"
-			size="xs"
-			aria-label="Reset all time"
-			onclick={() => state.resetAllTime()}>All time</Button
-		>
-	</div>
+	{#snippet footer()}
+		<Dropdown id="score-reset-menu" placement="bottom-end">
+			<Dropdown.Trigger class="cinder-button" data-cinder-variant="ghost" data-cinder-size="xs"
+				>Reset</Dropdown.Trigger
+			>
+			<Dropdown.Menu>
+				<Dropdown.Item onclick={() => state.resetSession()}>Session</Dropdown.Item>
+				<Dropdown.Item onclick={() => state.resetAllTime()}>All time</Dropdown.Item>
+			</Dropdown.Menu>
+		</Dropdown>
+	{/snippet}
 </Card>
 
 <style>
 	:global(.score-bar > .cinder-card__body) {
-		display: flex;
-		justify-content: space-between;
-		flex-wrap: wrap;
-		gap: var(--cinder-space-4);
-		align-items: center;
-		padding: var(--cinder-space-3) var(--cinder-space-5);
+		padding: var(--cinder-space-5);
 	}
 
 	.stats {
-		display: flex;
-		align-items: stretch;
-		gap: var(--cinder-space-7);
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		margin: 0;
 	}
 
 	.stat {
 		display: flex;
 		flex-direction: column;
-		gap: var(--cinder-space-0-5);
+		gap: var(--cinder-space-1);
+		min-width: 0;
+		padding-inline: var(--cinder-space-4);
 	}
 
-	.stat-secondary .stat-value {
-		color: var(--cinder-text-muted);
+	.stat:first-child {
+		padding-left: 0;
+	}
+
+	.stat + .stat {
+		border-left: 1px solid var(--cinder-border);
 	}
 
 	.stat-label {
-		font-size: var(--cinder-text-2xs);
-		font-weight: var(--cinder-font-semibold);
-		text-transform: uppercase;
-		letter-spacing: 0.07em;
-		color: var(--cinder-text-subtle);
+		font-size: var(--cinder-text-xs);
+		font-weight: var(--cinder-font-medium);
+		color: var(--cinder-text-muted);
 	}
 
 	.stat-value {
+		display: flex;
+		align-items: center;
+		gap: var(--cinder-space-1);
+		margin: 0;
 		font-size: var(--cinder-text-2xl);
 		font-weight: var(--cinder-font-semibold);
 		font-variant-numeric: tabular-nums;
-		line-height: 1.1;
-		color: var(--cinder-text);
+		line-height: 1.2;
+		color: var(--cinder-text-default);
+	}
+
+	.streak-value {
+		color: var(--cinder-accent-text);
 	}
 
 	.stat-detail {
-		display: flex;
-		align-items: center;
-		gap: var(--cinder-space-2-5);
+		margin: 0;
 		font-size: var(--cinder-text-xs);
 		color: var(--cinder-text-muted);
 		font-variant-numeric: tabular-nums;
 	}
 
-	.fraction {
-		color: var(--cinder-text-muted);
-	}
-
-	.streak-group {
+	:global(.score-bar > .cinder-card__footer) {
+		border-top: 0;
 		display: flex;
-		align-items: center;
-		gap: var(--cinder-space-0-5);
+		justify-content: flex-end;
+		padding: var(--cinder-space-2) var(--cinder-space-5);
 	}
 
-	.streak-icon {
-		display: inline-flex;
-		color: var(--cinder-accent-text);
-	}
-
-	.streak-current {
-		font-weight: var(--cinder-font-semibold);
-		color: var(--cinder-accent-text);
-	}
-
-	.streak-best {
-		color: var(--cinder-text-subtle);
-	}
-
-	.actions {
-		display: flex;
-		align-items: center;
-		gap: var(--cinder-space-1-5);
-		flex-wrap: wrap;
-	}
-
-	.reset-label {
-		font-size: var(--cinder-text-xs);
-		color: var(--cinder-text-subtle);
-	}
-
-	@media (max-width: 560px) {
-		.actions {
-			width: 100%;
+	@container (max-width: 600px) {
+		.stats {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			row-gap: var(--cinder-space-5);
 		}
 
-		.actions :global(.cinder-button) {
-			flex: 1;
+		.stat:nth-child(odd) {
+			border-left: 0;
+			padding-left: 0;
 		}
 	}
 </style>

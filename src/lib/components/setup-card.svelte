@@ -1,108 +1,43 @@
 <script lang="ts">
-	import Button from '@lostgradient/cinder/button';
 	import Card from '@lostgradient/cinder/card';
 	import FormField from '@lostgradient/cinder/form-field';
-	import Select from '@lostgradient/cinder/select';
 	import Slider from '@lostgradient/cinder/slider';
+	import NoteScope from '$lib/components/note-scope.svelte';
 	import { MAX_OCTAVE, MIN_OCTAVE } from '$lib/round';
 	import { getPracticeState } from '$lib/state.svelte';
-	import {
-		KEYS,
-		bothSpellings,
-		isBlackPitchClass,
-		noteLabel,
-		scalePitchClassSet
-	} from '$lib/music';
 
 	const state = getPracticeState();
 
-	const keyOptions = KEYS.map((key) => ({ value: key.id, label: key.label }));
-
-	const keyHint = $derived(
-		state.key.tonicPc === null
-			? 'All twelve notes, labelled with both spellings.'
-			: 'Notes default to this scale; the tonic is marked.'
-	);
-
-	const pitchClasses = Array.from({ length: 12 }, (_, pc) => pc);
-
-	/**
-	 * The current key's diatonic scale. Dimming (out-of-key) is independent of
-	 * eligibility (on/off fill) — a note the user toggles off still belongs to
-	 * the key, and a non-scale note they enable is still out of key.
-	 */
-	const scale = $derived(scalePitchClassSet(state.key));
-
-	function inKey(pc: number): boolean {
-		return scale.has(pc);
-	}
-
-	function isTonic(pc: number): boolean {
-		return state.key.tonicPc === pc;
-	}
-
-	function handleKeyChange(event: Event) {
-		state.setKey((event.currentTarget as HTMLSelectElement).value);
-	}
-
-	const octaveCount = $derived(state.octaveHi - state.octaveLo + 1);
 	const octaveHint = $derived(
-		`${state.available} possible ${state.available === 1 ? 'note' : 'notes'} across ${octaveCount} ${octaveCount === 1 ? 'octave' : 'octaves'}.`
+		`${state.available} ${state.available === 1 ? 'note' : 'notes'} · C${state.octaveLo}–B${state.octaveHi}`
+	);
+	const octaveRangeLabel = $derived(
+		state.octaveLo === state.octaveHi
+			? `Octave ${state.octaveLo}`
+			: `Octaves ${state.octaveLo}–${state.octaveHi}`
 	);
 </script>
 
-<Card title="Setup">
-	<div class="fields">
-		<div class="field">
-			<Select
-				id="key-select"
-				label="Key"
-				options={keyOptions}
-				value={state.keyId}
-				onchange={handleKeyChange}
-			/>
-			<p class="hint">{keyHint}</p>
-		</div>
+<Card>
+	<div class="settings">
+		<NoteScope
+			idPrefix="key-select"
+			keyId={state.keyId}
+			eligibleNotes={state.eligibleNotes}
+			onKeyChange={(keyId) => state.setKey(keyId)}
+			onToggleNote={(pitchClass) => state.toggleNote(pitchClass)}
+			onResetNotes={() => state.matchKey()}
+		/>
 
 		<div class="field">
-			<span class="field-label">Eligible notes</span>
-			<div class="chips" role="group" aria-label="Eligible notes">
-				{#each pitchClasses as pc (pc)}
-					{@const on = state.eligibleNotes.has(pc)}
-					{@const black = isBlackPitchClass(pc)}
-					{@const [sharp, flat] = bothSpellings(pc)}
-					<Button
-						variant={on ? 'soft' : 'secondary'}
-						size="sm"
-						class={['chip', isTonic(pc) && 'tonic', !inKey(pc) && 'dimmed']
-							.filter(Boolean)
-							.join(' ')}
-						aria-pressed={on}
-						aria-label={state.key.tonicPc === null && black ? `${sharp} or ${flat}` : undefined}
-						onclick={() => state.toggleNote(pc)}
-					>
-						{#if state.key.tonicPc === null && black}
-							<span class="chip-enharmonic" aria-hidden="true">
-								<span class="chip-sharp">{sharp}</span><span class="chip-slash">/</span><span
-									class="chip-flat">{flat}</span
-								>
-							</span>
-						{:else}
-							{noteLabel(pc, state.spelling)}
-						{/if}
-					</Button>
-				{/each}
-			</div>
-			{#if state.key.tonicPc !== null}
-				<Button variant="ghost" size="xs" class="match-key" onclick={() => state.matchKey()}>
-					Match key
-				</Button>
-			{/if}
-		</div>
-
-		<div class="field">
-			<FormField id="octaves" label="Octaves" description={octaveHint}>
+			<FormField
+				class="octave-field"
+				id="octaves"
+				label={octaveRangeLabel}
+				description={octaveHint}
+			>
 				<Slider
+					class="octave-slider"
 					mode="range"
 					label="Octaves"
 					min={MIN_OCTAVE}
@@ -119,7 +54,7 @@
 </Card>
 
 <style>
-	.fields {
+	.settings {
 		display: flex;
 		flex-direction: column;
 		gap: var(--cinder-space-5);
@@ -131,69 +66,26 @@
 		gap: var(--cinder-space-2);
 	}
 
-	.field-label {
-		font-size: var(--cinder-text-sm);
-		font-weight: var(--cinder-font-medium);
-		color: var(--cinder-text);
+	:global(.octave-slider .cinder-slider__header) {
+		display: none;
 	}
 
-	.hint {
-		margin: 0;
-		font-size: var(--cinder-text-xs);
-		color: var(--cinder-text-subtle);
-	}
-
-	.chips {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--cinder-space-1-5);
-	}
-
-	.chips :global(.chip) {
-		min-width: 38px;
-		font-variant-numeric: tabular-nums;
-	}
-
-	.chips :global(.chip.dimmed) {
-		opacity: 0.45;
-	}
-
-	.chips :global(.chip.tonic) {
-		text-decoration: underline;
-		text-decoration-color: var(--cinder-accent);
-		text-underline-offset: 3px;
-	}
-
-	.chip-enharmonic {
-		display: inline-flex;
+	:global(.octave-field) {
+		display: grid;
+		grid-template-columns: max-content minmax(0, 1fr);
 		align-items: baseline;
-		gap: 0;
-		white-space: nowrap;
+		column-gap: var(--cinder-space-3);
 	}
 
-	.chip-sharp {
-		font-size: var(--cinder-text-sm);
+	:global(.octave-field > .cinder-form-field__description) {
+		grid-column: 2;
+		grid-row: 1;
+		text-align: right;
+		text-wrap: balance;
 	}
 
-	.chip-slash {
-		font-size: var(--cinder-text-xs);
-		color: var(--cinder-text-subtle);
-		margin: 0 1px;
-	}
-
-	.chip-flat {
-		font-size: var(--cinder-text-xs);
-		color: var(--cinder-text-muted);
-	}
-
-	.field :global(.match-key) {
-		align-self: flex-start;
-	}
-
-	@media (pointer: coarse) {
-		.chips :global(.chip) {
-			min-width: var(--cinder-touch-target-min);
-			min-height: var(--cinder-touch-target-min);
-		}
+	:global(.octave-field > .cinder-slider),
+	:global(.octave-field > .cinder-form-field__error) {
+		grid-column: 1 / -1;
 	}
 </style>

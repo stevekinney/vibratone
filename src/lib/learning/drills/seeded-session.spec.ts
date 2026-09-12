@@ -22,13 +22,21 @@ describe('seeded-session', () => {
 		);
 	});
 
-	it('no prompt repeats back-to-back when pool has alternatives', () => {
-		const prompts = createSeededSession(baseConfig, 24);
-		for (let index = 1; index < prompts.length; index++) {
-			expect(`${prompts[index].pitchClass}:${prompts[index].octave}`).not.toBe(
-				`${prompts[index - 1].pitchClass}:${prompts[index - 1].octave}`
-			);
-		}
+	it('allows seeded draws to repeat with two eligible pitches', () => {
+		const prompts = createSeededSession(
+			{
+				...baseConfig,
+				seed: 'regression-0',
+				eligiblePitchClasses: [0, 4]
+			},
+			32
+		);
+		const pitchClasses = prompts.map((prompt) => prompt.pitchClass);
+
+		expect(new Set(pitchClasses)).toEqual(new Set([0, 4]));
+		expect(
+			pitchClasses.some((pitchClass, index) => index > 0 && pitchClass === pitchClasses[index - 1])
+		).toBe(true);
 	});
 
 	it('every generated prompt has pitchClass within eligiblePitchClasses', () => {
@@ -54,20 +62,10 @@ describe('seeded-session', () => {
 		expect(new Set(prompts.map((prompt) => prompt.promptId)).size).toBe(64);
 	});
 
-	it('honors the previous prompt across generated session batches', () => {
-		const [prompt] = createSeededSession(baseConfig, 1, 64, { pc: 0, octave: 4 });
-
-		expect(`${prompt.pitchClass}:${prompt.octave}`).not.toBe('0:4');
-	});
-
 	it('continues the seeded random stream across split batches', () => {
 		const fullSession = createSeededSession(baseConfig, 128);
 		const firstBatch = createSeededSession(baseConfig, 64);
-		const lastPrompt = firstBatch[firstBatch.length - 1];
-		const secondBatch = createSeededSession(baseConfig, 64, 64, {
-			pc: lastPrompt.pitchClass,
-			octave: lastPrompt.octave
-		});
+		const secondBatch = createSeededSession(baseConfig, 64, 64);
 
 		expect([...firstBatch, ...secondBatch]).toEqual(fullSession);
 	});

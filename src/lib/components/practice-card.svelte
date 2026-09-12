@@ -1,85 +1,85 @@
 <script lang="ts">
-	import Alert from '@lostgradient/cinder/alert';
+	import { onMount } from 'svelte';
+	let mounted = $state(false);
+	onMount(() => {
+		mounted = true;
+	});
 	import Button from '@lostgradient/cinder/button';
+	import Alert from '@lostgradient/cinder/alert';
 	import Card from '@lostgradient/cinder/card';
 	import Check from 'lucide-svelte/icons/check';
 	import Play from 'lucide-svelte/icons/play';
-	import RotateCcw from 'lucide-svelte/icons/rotate-ccw';
 	import { getPracticeState } from '$lib/state.svelte';
 	import { formatPitch, noteLabel } from '$lib/music';
 
-	const state = getPracticeState();
+	const practiceState = getPracticeState();
 
-	const roundLabel = $derived(state.started ? `Round ${state.round}` : 'Ready');
+	const roundLabel = $derived(`Round ${practiceState.round}`);
 
 	const statusText = $derived.by(() => {
-		if (!state.canPlay) return 'Adjust the setup to begin';
-		if (!state.started) return 'Press play to hear the first note';
-		if (state.phase === 'guessing') return 'Identify the note you heard';
-		if (state.phase === 'revealed') return state.lastCorrect ? 'Correct' : 'Not quite';
-		return 'Press play to hear the first note';
+		if (!practiceState.canPlay) return 'Adjust the setup to begin';
+		if (!practiceState.started) return '';
+		if (practiceState.phase === 'guessing') return '';
+		if (practiceState.phase === 'revealed')
+			return practiceState.lastCorrect ? 'Correct' : 'Not quite';
+		return '';
 	});
 
 	const statusTone = $derived(
-		state.phase === 'revealed' ? (state.lastCorrect ? 'success' : 'danger') : 'default'
+		practiceState.phase === 'revealed'
+			? practiceState.lastCorrect
+				? 'success'
+				: 'danger'
+			: 'default'
 	);
 
-	const answerLabel = $derived(state.current ? formatPitch(state.current, state.spelling) : '');
+	const answerLabel = $derived(
+		practiceState.current ? formatPitch(practiceState.current, practiceState.spelling) : ''
+	);
 	// The guess is a pitch class only — octave is never part of a guess.
 	const guessLabel = $derived(
-		state.guessedPc !== null ? noteLabel(state.guessedPc, state.spelling) : ''
+		practiceState.guessedPc !== null
+			? noteLabel(practiceState.guessedPc, practiceState.spelling)
+			: ''
 	);
-	const revealed = $derived(state.phase === 'revealed');
+	const revealed = $derived(practiceState.phase === 'revealed');
 </script>
 
 <Card>
 	<div class="practice">
-		<span class="round">{roundLabel}</span>
-
-		<button
-			type="button"
-			class="play"
-			class:guessing={state.phase === 'guessing'}
-			disabled={!state.canPlay}
-			onclick={() => state.play()}
-			aria-label="Play the note"
-		>
-			{#if state.phase === 'guessing'}
-				<span class="pulse" aria-hidden="true"></span>
-			{/if}
-			<Play size={40} strokeWidth={1.5} fill="currentColor" class="play-icon" />
-		</button>
-
-		<p class="status" data-tone={statusTone}>{statusText}</p>
-
-		{#if state.audioError}
-			<Alert variant="danger" class="audio-error">{state.audioError}</Alert>
+		{#if practiceState.started}
+			<span class="round">{roundLabel}</span>
 		{/if}
 
 		<Button
-			variant="secondary"
-			size="sm"
-			class="replay"
-			disabled={!state.current}
-			onclick={() => state.replay()}
+			type="button"
+			class="play"
+			disabled={!mounted || !practiceState.canPlay}
+			onclick={() => (practiceState.current ? practiceState.replay() : practiceState.play())}
+			aria-label={practiceState.current ? 'Replay the note' : 'Play the note'}
 		>
-			{#snippet leadingIcon()}
-				<RotateCcw size={16} strokeWidth={1.5} />
-			{/snippet}
-			Replay
+			{#if practiceState.phase === 'guessing'}
+				<span class="pulse" aria-hidden="true"></span>
+			{/if}
+			<Play size={36} strokeWidth={1.5} fill="currentColor" class="play-icon" aria-hidden="true" />
 		</Button>
 
-		<div class="reveal" aria-live="polite">
+		{#if practiceState.audioError}
+			<Alert variant="danger" class="audio-error">{practiceState.audioError}</Alert>
+		{/if}
+
+		<div class="reveal" class:empty={!revealed && practiceState.canPlay} aria-live="polite">
+			<p class="status" data-tone={statusTone}>{statusText}</p>
 			{#if revealed}
 				<div class="reveal-answer">
 					<span class="answer">{answerLabel}</span>
-					{#if state.lastCorrect}
+					{#if practiceState.lastCorrect}
 						<span class="answer-check" aria-hidden="true">
 							<Check size={24} strokeWidth={2} />
 						</span>
 					{/if}
 				</div>
-				{#if !state.lastCorrect}
+				{#if !practiceState.lastCorrect}
 					<p class="guess">you played <span class="guess-note">{guessLabel}</span></p>
 				{/if}
 				<div class="progress" aria-hidden="true">
@@ -92,14 +92,19 @@
 
 <style>
 	.practice {
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		gap: var(--cinder-space-4);
-		padding: var(--cinder-space-7) var(--cinder-space-6) var(--cinder-space-6);
+		justify-content: center;
+		min-height: 328px;
+		padding: var(--cinder-space-4);
 	}
 
 	.round {
+		position: absolute;
+		top: var(--cinder-space-3);
 		font-size: var(--cinder-text-2xs);
 		font-weight: var(--cinder-font-semibold);
 		text-transform: uppercase;
@@ -108,36 +113,37 @@
 		font-variant-numeric: tabular-nums;
 	}
 
-	.play {
+	.practice :global(.play) {
 		position: relative;
-		display: grid;
-		place-items: center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 4px;
 		width: 104px;
 		height: 104px;
 		border: none;
 		border-radius: var(--cinder-radius-full);
-		background: var(--cinder-accent);
+		background: var(--cinder-accent-solid);
 		color: var(--cinder-accent-contrast);
 		box-shadow: var(--cinder-shadow-md);
 		cursor: pointer;
-		transition:
-			background var(--cinder-duration-fast) var(--cinder-ease-standard),
-			transform var(--cinder-duration-fast) var(--cinder-ease-standard);
+		transition: transform var(--cinder-duration-fast) var(--cinder-ease-standard);
 	}
 
-	.play :global(.play-icon) {
+	.practice :global(.play .play-icon) {
 		transform: translateX(3px);
 	}
 
-	.play:hover:not(:disabled) {
-		background: var(--cinder-accent-hover);
+	.practice :global(.play:hover:not(:disabled)) {
+		background: var(--cinder-accent-solid-hover);
 	}
 
-	.play:active:not(:disabled) {
+	.practice :global(.play:active:not(:disabled)) {
 		transform: scale(0.97);
 	}
 
-	.play:disabled {
+	.practice :global(.play:disabled) {
 		background: var(--cinder-fill-disabled);
 		color: var(--cinder-text-disabled);
 		box-shadow: none;
@@ -148,7 +154,7 @@
 		position: absolute;
 		inset: -6px;
 		border-radius: var(--cinder-radius-full);
-		border: 2px solid var(--cinder-accent);
+		border: 2px solid var(--cinder-accent-solid);
 		animation: pulse 2s var(--cinder-ease-standard) infinite;
 		pointer-events: none;
 	}
@@ -178,17 +184,17 @@
 	}
 
 	.status[data-tone='success'] {
-		color: var(--cinder-color-success-fg);
+		color: var(--cinder-status-success-text);
 		font-weight: var(--cinder-font-medium);
 	}
 
 	.status[data-tone='danger'] {
-		color: var(--cinder-color-danger-fg);
+		color: var(--cinder-status-danger-text);
 		font-weight: var(--cinder-font-medium);
 	}
 
 	.status[data-tone='default'] {
-		color: var(--cinder-text);
+		color: var(--cinder-text-default);
 	}
 
 	.practice :global(.audio-error) {
@@ -200,7 +206,8 @@
 		flex-direction: column;
 		align-items: center;
 		gap: var(--cinder-space-2);
-		min-height: 64px;
+		height: 144px;
+		flex-shrink: 0;
 		justify-content: center;
 	}
 
@@ -214,11 +221,11 @@
 		font-size: var(--cinder-text-4xl);
 		font-weight: var(--cinder-font-semibold);
 		font-variant-numeric: tabular-nums;
-		color: var(--cinder-text);
+		color: var(--cinder-text-default);
 	}
 
 	.answer-check {
-		color: var(--cinder-color-success-fg);
+		color: var(--cinder-status-success-text);
 		display: inline-flex;
 	}
 
@@ -229,7 +236,7 @@
 	}
 
 	.guess-note {
-		color: var(--cinder-color-danger-fg);
+		color: var(--cinder-status-danger-text);
 		font-weight: var(--cinder-font-medium);
 	}
 
@@ -244,7 +251,7 @@
 	.progress-fill {
 		display: block;
 		height: 100%;
-		background: var(--cinder-accent);
+		background: var(--cinder-accent-solid);
 		transform-origin: left center;
 		animation: advance 1.6s linear forwards;
 	}
@@ -265,9 +272,9 @@
 		}
 	}
 
-	@media (pointer: coarse) {
-		.practice :global(.replay) {
-			min-height: var(--cinder-touch-target-min);
-		}
+	.reveal.empty {
+		height: 0;
+		overflow: hidden;
+		margin-top: calc(-1 * var(--cinder-space-4));
 	}
 </style>

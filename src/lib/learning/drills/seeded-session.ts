@@ -27,8 +27,7 @@ export function drillPromptFromPitch(
 export function createSeededSession(
 	config: DrillConfig,
 	count = DEFAULT_SESSION_PROMPT_COUNT,
-	startIndex = 0,
-	previousPrompt: Pitch | null = null
+	startIndex = 0
 ): DrillPrompt[] {
 	if (poolSize(config.eligiblePitchClasses, config.octaveLo, config.octaveHi) === 0 || count <= 0) {
 		return [];
@@ -37,19 +36,16 @@ export function createSeededSession(
 	const randomInt =
 		config.seed !== undefined ? seededRandomInt(config.seed, startIndex) : undefined;
 	const prompts: DrillPrompt[] = [];
-	let previous: Pitch | null = previousPrompt;
 
 	for (let index = 0; index < count; index++) {
 		const pitch = createPrompt({
 			eligiblePitchClasses: config.eligiblePitchClasses,
 			octaveLo: config.octaveLo,
 			octaveHi: config.octaveHi,
-			previous,
 			randomInt
 		});
 		if (!pitch) break;
 		prompts.push(drillPromptFromPitch(config, pitch, startIndex + index));
-		previous = pitch;
 	}
 
 	return prompts;
