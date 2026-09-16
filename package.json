@@ -44,7 +44,7 @@
 	"dependencies": {
 		"@lostgradient/cinder": "0.26.0",
 		"lucide-svelte": "1.0.1",
-		"octavian": "3.1.0",
+		"octavian": "3.2.0",
 		"vexflow": "5.0.0",
 		"web-audio-api": "^1.5.6"
 	}

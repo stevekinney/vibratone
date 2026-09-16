@@ -157,11 +157,11 @@ for (const viewport of viewports) {
 			height: element.getBoundingClientRect().height
 		}));
 		const eligible = page.getByRole('group', { name: 'Eligible notes' });
-		const cNote = eligible.getByRole('button', { name: 'C', exact: true });
-		await expect(eligible.getByRole('button', { pressed: true })).toHaveCount(7);
+		const cNote = eligible.getByRole('checkbox', { name: 'C', exact: true });
+		await expect(eligible.getByRole('checkbox', { checked: true })).toHaveCount(7);
 		await cNote.click();
-		await expect(cNote).toHaveAttribute('aria-pressed', 'false');
-		await expect(eligible.getByRole('button', { pressed: true })).toHaveCount(6);
+		await expect(cNote).not.toBeChecked();
+		await expect(eligible.getByRole('checkbox', { checked: true })).toHaveCount(6);
 		await expect(reset).toBeVisible();
 		await expect(reset).toHaveAttribute('data-cinder-variant', 'secondary');
 		expect(
@@ -178,8 +178,8 @@ for (const viewport of viewports) {
 				height: element.getBoundingClientRect().height
 			}))
 		).toEqual(beforeResetAppears);
-		await expect(cNote).toHaveAttribute('aria-pressed', 'true');
-		await expect(eligible.getByRole('button', { pressed: true })).toHaveCount(7);
+		await expect(cNote).toBeChecked();
+		await expect(eligible.getByRole('checkbox', { checked: true })).toHaveCount(7);
 		const octaveHeading = await page.locator('.octave-field').evaluate((element) => {
 			const label = element.querySelector('label')!.getBoundingClientRect();
 			const summary = element
@@ -381,6 +381,23 @@ test('persists a non-default key selection across a reload', async ({ page }) =>
 
 	await expect(page.getByLabel('Key', { exact: true })).toHaveValue('F');
 	await expect(page.getByText('Notes default to this scale; the tonic is marked.')).toHaveCount(0);
+});
+
+test('selects D Dorian and persists its modal scope across a reload', async ({ page }) => {
+	await page.goto('/ear-training');
+
+	await page.getByLabel('Key', { exact: true }).selectOption('D');
+	await page.getByLabel('Mode', { exact: true }).selectOption('dorian');
+	const eligible = page.getByRole('group', { name: 'Eligible notes' });
+	for (const note of ['C', 'D', 'E', 'F', 'G', 'A', 'B']) {
+		await expect(eligible.getByRole('checkbox', { name: note, exact: true })).toBeChecked();
+	}
+	await expect(eligible.getByRole('checkbox', { checked: true })).toHaveCount(7);
+
+	await page.reload();
+	await expect(page.getByLabel('Key', { exact: true })).toHaveValue('D');
+	await expect(page.getByLabel('Mode', { exact: true })).toHaveValue('dorian');
+	await expect(eligible.getByRole('checkbox', { checked: true })).toHaveCount(7);
 });
 
 test('records five AttemptEvent objects locally without outbound drill requests', async ({

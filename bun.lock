@@ -7,7 +7,7 @@
       "dependencies": {
         "@lostgradient/cinder": "0.26.0",
         "lucide-svelte": "1.0.1",
-        "octavian": "3.1.0",
+        "octavian": "3.2.0",
         "vexflow": "5.0.0",
         "web-audio-api": "^1.5.6",
       },
@@ -665,7 +665,7 @@
 
     "obug": ["obug@2.2.1", "", {}, "sha512-XrsrhT5sybtKI6wakr2SPOlGZWWYbUXZ7a0jT8/QOeAPau+1X/bSegNe5YR75oJmEZQbKningirmGOEJCIk61Q=="],
 
-    "octavian": ["octavian@3.1.0", "", {}, "sha512-fN9aElsDFY1PtPerJ4Fhx7DCz5kBp3BHomcchm+S2aoDO/cLLk/Xcm3KPcfoYpmap0K9AgkrxreDCiXmHEaA4w=="],
+    "octavian": ["octavian@3.2.0", "", {}, "sha512-ytcPrCcAMWi13OUnzSXutpFMZtrmZgdUFnoBL+R9C3dwqcpsozVCL04TvwbXtl5H4XfVPVUVuux8f0g0OgGzAA=="],
 
     "oniguruma-parser": ["oniguruma-parser@0.12.2", "", {}, "sha512-6HVa5oIrgMC6aA6WF6XyyqbhRPJrKR02L20+2+zpDtO5QAzGHAUGw5TKQvwi5vctNnRHkJYmjAhRVQF2EKdTQw=="],
 

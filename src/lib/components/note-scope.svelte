@@ -1,16 +1,16 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { SvelteSet } from 'svelte/reactivity';
 	let mounted = $state(false);
 	onMount(() => {
 		mounted = true;
 	});
 	import Button from '@lostgradient/cinder/button';
-	import SegmentedControl, { Segment } from '@lostgradient/cinder/segmented-control';
-	import Check from 'lucide-svelte/icons/check';
+	import Checkbox from '@lostgradient/cinder/checkbox';
+	import CheckboxGroup from '@lostgradient/cinder/checkbox-group';
 	import Select from '@lostgradient/cinder/select';
 	import {
-		KEYS,
+		MODES,
+		ROOT_KEYS,
 		bothSpellings,
 		isBlackPitchClass,
 		keyById,
@@ -38,22 +38,18 @@
 		idPrefix = generatedId
 	}: Props = $props();
 
-	const keyOptions = KEYS.map((key) => ({ value: key.id, label: key.label }));
+	const keyOptions = ROOT_KEYS.map((key) => ({ value: key.id, label: key.label }));
+	const modeOptions = MODES;
 	const pitchClasses = Array.from({ length: 12 }, (_, pitchClass) => pitchClass);
 	const key = $derived(keyById(keyId));
+	const rootKey = $derived(keyById(keyId.split(':')[0]));
+	const mode = $derived(key.mode);
 	const eligibleSet = $derived(new Set(eligibleNotes));
-	const eligibleSelection = $derived(new SvelteSet([...eligibleNotes].map(String)));
 	const isChromatic = $derived(key.tonicPc === null);
 	const keyNotes = $derived(scalePitchClassSet(key));
 	const matchesKey = $derived(
 		eligibleSet.size === keyNotes.size && [...keyNotes].every((note) => eligibleSet.has(note))
 	);
-	function toggleNoteFromSegment() {
-		const pitchClass = pitchClasses.find(
-			(note) => eligibleSelection.has(String(note)) !== eligibleSet.has(note)
-		);
-		if (pitchClass !== undefined) onToggleNote(pitchClass);
-	}
 </script>
 
 <div class="scope">
@@ -64,64 +60,56 @@
 				id={idPrefix}
 				label="Key"
 				options={keyOptions}
-				value={keyId}
-				onchange={(event) => onKeyChange(event.currentTarget.value)}
+				value={rootKey.id}
+				onchange={(event) =>
+					onKeyChange(
+						mode === 'major' || event.currentTarget.value === 'chromatic'
+							? event.currentTarget.value
+							: `${event.currentTarget.value}:${mode}`
+					)}
+			/>
+		</div>
+		<div class="field">
+			<Select
+				disabled={!mounted || rootKey.tonicPc === null}
+				id={`${idPrefix}-mode`}
+				label="Mode"
+				options={modeOptions}
+				value={mode}
+				onchange={(event) =>
+					onKeyChange(
+						event.currentTarget.value === 'major'
+							? rootKey.id
+							: `${rootKey.id}:${event.currentTarget.value}`
+					)}
 			/>
 		</div>
 
-		<div class="field">
-			<div class="notes-heading">
-				<span id={`${idPrefix}-eligible-label`} class="field-label">Eligible notes</span>
-				<Button
-					variant="secondary"
-					size="sm"
-					class={matchesKey ? 'match-key concealed' : 'match-key'}
-					aria-label={`Reset notes to ${key.label}`}
-					onclick={onResetNotes}>Reset</Button
-				>
-			</div>
-			<SegmentedControl
-				class="notes4small"
-				detached
-				disabled={!mounted}
-				fullWidth
-				id={`${idPrefix}-eligible`}
-				label="Eligible notes"
-				labelVisible={false}
-				selectionMode="multiple"
+		<div class="field notes-field">
+			<Button
+				variant="secondary"
 				size="sm"
-				value={eligibleSelection}
-				onclick={toggleNoteFromSegment}
+				class={matchesKey ? 'match-key concealed' : 'match-key'}
+				aria-label={`Reset notes to ${key.label}`}
+				onclick={onResetNotes}>Reset</Button
 			>
-				{#each pitchClasses as pitchClass (pitchClass)}
-					{@const on = eligibleSet.has(pitchClass)}
-					{@const black = isBlackPitchClass(pitchClass)}
-					{@const [sharp, flat] = bothSpellings(pitchClass)}
-					<Segment
-						value={String(pitchClass)}
-						class={['chip', key.tonicPc === pitchClass && 'tonic'].filter(Boolean).join(' ')}
-						aria-label={isChromatic && black ? `${sharp} or ${flat}` : undefined}
-					>
-						{#if isChromatic && black}
-							<span class="chip-enharmonic" aria-hidden="true">
-								<span class="chip-sharp">{sharp}</span><span class="chip-slash">/</span><span
-									class="chip-flat">{flat}</span
-								>
-							</span>
-						{:else}
-							{noteLabel(pitchClass, key.spelling)}
-						{/if}
-						{#snippet trailing()}
-							<span class="selection-check-slot">
-								{#if on}<Check size={12} strokeWidth={2.5} aria-hidden="true" />{/if}
-							</span>
-						{/snippet}
-					</Segment>
-				{/each}
-			</SegmentedControl>
-			{#if eligibleSet.size === 0}
-				<p class="empty-scope">No eligible notes selected.</p>
-			{/if}
+			<CheckboxGroup id={`${idPrefix}-eligible`} label="Eligible notes" disabled={!mounted}>
+				<div class="note-options">
+					{#each pitchClasses as pitchClass (pitchClass)}
+						{@const [sharp, flat] = bothSpellings(pitchClass)}
+						{@const enharmonic = isChromatic && isBlackPitchClass(pitchClass)}
+						<div class:tonic={key.tonicPc === pitchClass}>
+							<Checkbox
+								label={enharmonic ? `${sharp}/${flat}` : noteLabel(pitchClass, key.spelling)}
+								aria-label={enharmonic ? `${sharp} or ${flat}` : undefined}
+								checked={eligibleSet.has(pitchClass)}
+								onValueChange={() => onToggleNote(pitchClass)}
+							/>
+						</div>
+					{/each}
+				</div>
+			</CheckboxGroup>
+			{#if eligibleSet.size === 0}<p class="empty-scope">No eligible notes selected.</p>{/if}
 		</div>
 	</div>
 </div>
@@ -143,59 +131,25 @@
 		gap: var(--cinder-space-1-5);
 	}
 
-	:global(.notes4small) :global(.chip) {
-		min-width: 38px;
-		font-variant-numeric: tabular-nums;
+	.notes-field {
+		position: relative;
 	}
-
-	:global(.notes4small) :global(.chip.tonic) {
+	.note-options {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: var(--cinder-space-3) var(--cinder-space-2);
+		padding-top: var(--cinder-space-2);
+	}
+	.tonic {
 		text-decoration: underline;
-		text-decoration-color: currentColor;
 		text-underline-offset: 3px;
 	}
-
-	:global(.notes4small) {
-		display: grid;
-		grid-template-columns: repeat(4, minmax(0, 1fr));
-		gap: var(--cinder-space-1-5);
+	.notes-field :global(.match-key) {
+		position: absolute;
+		top: -4px;
+		right: 0;
 	}
-
-	.selection-check-slot {
-		display: inline-flex;
-		width: 12px;
-		height: 12px;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.chip-enharmonic {
-		display: inline-flex;
-		align-items: baseline;
-		gap: 0;
-		white-space: nowrap;
-	}
-
-	.chip-sharp {
-		font-size: var(--cinder-text-sm);
-	}
-
-	.chip-slash {
-		font-size: var(--cinder-text-xs);
-		margin: 0 1px;
-	}
-
-	.chip-flat {
-		font-size: var(--cinder-text-xs);
-	}
-
-	.notes-heading {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: var(--cinder-space-2);
-	}
-
-	.notes-heading :global(.concealed) {
+	.notes-field :global(.concealed) {
 		visibility: hidden;
 	}
 
@@ -208,19 +162,15 @@
 	@container (min-width: 560px) {
 		.fields {
 			display: grid;
-			grid-template-columns: var(--note-scope-columns, minmax(180px, 0.7fr) minmax(0, 1.3fr));
+			grid-template-columns: var(
+				--note-scope-columns,
+				minmax(150px, 0.55fr) minmax(150px, 0.55fr) minmax(0, 1.3fr)
+			);
 			align-items: start;
 		}
 
-		:global(.notes4small) {
-			grid-template-columns: repeat(6, minmax(0, 1fr));
-		}
-	}
-
-	@media (pointer: coarse) {
-		:global(.notes4small) :global(.chip) {
-			min-width: var(--cinder-touch-target-min);
-			min-height: var(--cinder-touch-target-min);
+		.note-options {
+			grid-template-columns: repeat(4, minmax(0, 1fr));
 		}
 	}
 </style>

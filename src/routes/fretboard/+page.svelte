@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { SvelteSet } from 'svelte/reactivity';
 	import Button from '@lostgradient/cinder/button';
 	import Card from '@lostgradient/cinder/card';
+	import Checkbox from '@lostgradient/cinder/checkbox';
+	import CheckboxGroup from '@lostgradient/cinder/checkbox-group';
 	import Select from '@lostgradient/cinder/select';
 	import Slider from '@lostgradient/cinder/slider';
 	import FormField from '@lostgradient/cinder/form-field';
@@ -11,7 +12,6 @@
 	import Fretboard from '$lib/components/fretboard.svelte';
 	import MusicNotation from '$lib/components/music-notation.svelte';
 	import NoteScope from '$lib/components/note-scope.svelte';
-	import Check from 'lucide-svelte/icons/check';
 	import { keyById, noteLabel, bothSpellings, scalePitchClassSet } from '$lib/music';
 	import {
 		eligiblePositions,
@@ -74,7 +74,6 @@
 			stringIndices: selectedStrings
 		})
 	);
-	const selectedStringValues = $derived(new SvelteSet(selectedStrings.map(String)));
 	const scopeHint = $derived(
 		[
 			octaves[0] === minimumOctave && octaves[1] === maximumOctave
@@ -94,7 +93,7 @@
 			.join(' · ')
 	);
 	const targetLabel = $derived(current ? label(current.midi % 12) : '');
-	const signature = $derived((keyId === 'chromatic' ? 'C' : keyId) as KeySignature);
+	const signature = $derived(key.signature as KeySignature);
 
 	function label(pitchClass: number) {
 		const [sharp, flat] = bothSpellings(pitchClass);
@@ -146,12 +145,7 @@
 			: selectedStrings.filter((index) => index < notes.length);
 		next();
 	}
-	function toggleStringFromSegment() {
-		const stringIndex = strings.find(
-			(string) =>
-				selectedStringValues.has(String(string.index)) !== selectedStrings.includes(string.index)
-		)?.index;
-		if (stringIndex === undefined) return;
+	function toggleString(stringIndex: number) {
 		selectedStrings = selectedStrings.includes(stringIndex)
 			? selectedStrings.filter((index) => index !== stringIndex)
 			: [...selectedStrings, stringIndex];
@@ -217,7 +211,7 @@
 					<MusicNotation
 						clef="treble"
 						keySignature={signature}
-						notes={[{ keys: [notationKey(current.midi, keyId)], duration: 'q' }]}
+						notes={[{ keys: [notationKey(current.midi, key.signature)], duration: 'q' }]}
 					/>
 				</div>
 			</div>
@@ -274,41 +268,18 @@
 					{/each}
 				</SegmentedControl>
 			</FormField>
-			<FormField id="fretboard-strings" label="Strings">
+			<CheckboxGroup aria-label="Strings" label="Strings" disabled={!mounted}>
 				<div class="string-options">
-					<SegmentedControl
-						class="strings3columns"
-						detached
-						disabled={!mounted}
-						fullWidth
-						id="fretboard-strings"
-						label="Strings"
-						labelVisible={false}
-						selectionMode="multiple"
-						size="sm"
-						value={selectedStringValues}
-						onclick={toggleStringFromSegment}
-					>
-						{#each strings as string (string.index)}
-							<Segment
-								value={String(string.index)}
-								aria-label={`String ${string.number} · ${string.note}`}
-							>
-								{string.number} · {string.note}
-								{#snippet trailing()}
-									<span class="selection-check-slot">
-										{#if selectedStrings.includes(string.index)}<Check
-												size={12}
-												strokeWidth={2.5}
-												aria-hidden="true"
-											/>{/if}
-									</span>
-								{/snippet}
-							</Segment>
-						{/each}
-					</SegmentedControl>
+					{#each strings as string (string.index)}
+						<Checkbox
+							checked={selectedStrings.includes(string.index)}
+							label={`${string.number} · ${string.note}`}
+							aria-label={`String ${string.number} · ${string.note}`}
+							onValueChange={() => toggleString(string.index)}
+						/>
+					{/each}
 				</div>
-			</FormField>
+			</CheckboxGroup>
 			<FormField
 				id="fretboard-octaves"
 				class="range-field"
@@ -438,18 +409,9 @@
 	}
 	.string-options {
 		min-width: 0;
-	}
-	.string-options :global(.strings3columns) {
 		display: grid;
 		grid-template-columns: repeat(3, minmax(0, 1fr));
 		gap: 6px;
-	}
-	.selection-check-slot {
-		display: inline-flex;
-		width: 12px;
-		height: 12px;
-		align-items: center;
-		justify-content: center;
 	}
 	.settings {
 		display: grid;

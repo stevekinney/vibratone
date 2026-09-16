@@ -3,7 +3,9 @@ import {
 	BLACK_PITCH_CLASSES,
 	FLAT_NAMES,
 	KEYS,
+	MODES,
 	MAJOR_SCALE_INTERVALS,
+	ROOT_KEYS,
 	SHARP_NAMES,
 	WHITE_PITCH_CLASSES,
 	bothSpellings,
@@ -16,6 +18,7 @@ import {
 	pitchToFrequency,
 	pitchToMidi,
 	scalePitchClassSet,
+	type ModeName,
 	type KeyDefinition
 } from './music.ts';
 
@@ -83,8 +86,9 @@ describe('keyById', () => {
 		expect(KEYS[0].tonicPc).toBeNull();
 	});
 
-	it('offers chromatic plus eleven major keys', () => {
-		expect(KEYS).toHaveLength(12);
+	it('offers twelve roots and all modal definitions', () => {
+		expect(ROOT_KEYS).toHaveLength(13);
+		expect(KEYS).toHaveLength(1 + 12 * MODES.length);
 	});
 
 	it('finds a known key by id', () => {
@@ -100,6 +104,12 @@ describe('keyById', () => {
 		expect(keyById('D').spelling).toBe('sharp');
 		expect(keyById('F').spelling).toBe('flat');
 		expect(keyById('C').spelling).toBe('sharp');
+	});
+
+	it('parses persisted modal IDs and exposes their parent signatures', () => {
+		expect(keyById('C:dorian')).toMatchObject({ mode: 'dorian', tonicPc: 0, signature: 'Bb' });
+		expect(keyById('A:aeolian')).toMatchObject({ mode: 'aeolian', tonicPc: 9, signature: 'C' });
+		expect(keyById('F#').signature).toBe('F#');
 	});
 });
 
@@ -135,6 +145,21 @@ describe('scalePitchClassSet', () => {
 		const set = scalePitchClassSet(keyById('D'));
 		expect(set.size).toBe(7);
 		expect([...set].sort((a, b) => a - b)).toEqual([1, 2, 4, 6, 7, 9, 11]);
+	});
+
+	it('uses Octavian mode scales for Dorian and Aeolian', () => {
+		expect([...scalePitchClassSet(keyById('C:dorian'))].sort((a, b) => a - b)).toEqual([
+			0, 2, 3, 5, 7, 9, 10
+		]);
+		expect([...scalePitchClassSet(keyById('A:aeolian'))].sort((a, b) => a - b)).toEqual([
+			0, 2, 4, 5, 7, 9, 11
+		]);
+	});
+
+	it('keeps major as the identity mode for existing IDs', () => {
+		const major = keyById('C');
+		expect(major.mode satisfies ModeName).toBe('major');
+		expect(keyById('C:major')).toEqual(major);
 	});
 });
 

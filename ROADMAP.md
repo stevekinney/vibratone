@@ -993,3 +993,17 @@ These product lines should share the same theory engine, audio engine, exercise 
 - [MDN Web MIDI API](https://developer.mozilla.org/en-US/docs/Web/API/Web_MIDI_API) and [WEBMIDI.js browser support notes](https://webmidijs.org/docs/getting-started/).
 - [VexFlow](https://www.vexflow.com/).
 - [musictheory.net exercises](https://www.musictheory.net/exercises), [EarMaster](https://www.earmaster.com/products/ear-training-sight-singing/earmaster-cloud-edition.html?d3FIG=VvpMv03U&id=16), [ToneGym](https://www.tonegym.co/dashboard/gym?in=zxp4q5qmhm9&lg=en), [TonedEar](https://tonedear.com/), [Perfect Ear](https://perfectear.app/), [Tone](https://apps.apple.com/us/app/tone-learn-perfect-pitch/id1139019670), and [Sonofield](https://sonofield.com/apps/ear-trainer).
+
+## Octavian 3.2 integration
+
+Reviewed the published 3.2.0 API against 3.1.0. Five functions were added:
+
+- `identifyChords`: recognizes unordered notes, ranks alternative names, and reports exact versus practical matches.
+- `identifyGuitarChords`: recognizes absolute fret positions with custom tuning; `0` means open and `null` means muted.
+- `identifyPianoChords`: recognizes pressed piano keys with the same alternative-name and omission metadata.
+- `guitarFingeringsFor`: lazily enumerates playable shapes, finger assignments, and barres with tuning, fret range, span, finger count, and omission constraints. Slash chords constrain the bass.
+- `pianoVoicingsFor`: lazily enumerates keyboard voicings with keyboard range, hand allocation, note count, hand span, and omission constraints. Its hand allocations are not individual finger numbers.
+
+The chord workspace uses guitar recognition and fingering generation directly. Searches run in a cancellable background worker and load successive batches without imposing a total result cap. Results follow Octavian's enumeration order, not a difficulty ranking. Practical omissions are opt-in and remain visible beside each match or shape.
+
+Chord training derives varieties from Octavian's catalog and diatonic triads or sevenths from its scale API. Shared note scoping supports all seven diatonic modes. Music notation, chord charts, fretboards, and piano keyboards remain local application components.

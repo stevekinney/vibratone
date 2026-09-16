@@ -7,7 +7,8 @@
  * derived through `octavian` rather than hand-rolled equal-temperament math.
  */
 
-import { Note, createMidiKey, midiToFrequency } from 'octavian';
+import { Note, Scale, createMidiKey, midiToFrequency } from 'octavian';
+import type { KeySignature } from './notation.ts';
 
 /** A pitch class: an integer 0–11 where 0 = C and 11 = B. */
 export type PitchClass = number;
@@ -59,7 +60,20 @@ export const MAJOR_SCALE_INTERVALS = [0, 2, 4, 5, 7, 9, 11] as const;
 /** The seven natural pitch classes, in left-to-right white-key order. */
 export const WHITE_PITCH_CLASSES = [0, 2, 4, 5, 7, 9, 11] as const;
 
-/** A selectable musical key: the chromatic "no key" option, or a major key. */
+export type ModeName =
+	'major' | 'dorian' | 'phrygian' | 'lydian' | 'mixolydian' | 'aeolian' | 'locrian';
+
+export const MODES: readonly { value: ModeName; label: string }[] = [
+	{ value: 'major', label: 'Major' },
+	{ value: 'dorian', label: 'Dorian' },
+	{ value: 'phrygian', label: 'Phrygian' },
+	{ value: 'lydian', label: 'Lydian' },
+	{ value: 'mixolydian', label: 'Mixolydian' },
+	{ value: 'aeolian', label: 'Natural minor (Aeolian)' },
+	{ value: 'locrian', label: 'Locrian' }
+] as const;
+
+/** A selectable tonic and diatonic mode, or the chromatic "no key" option. */
 export type KeyDefinition = {
 	/** Stable identifier used in persistence and `<Select>` options. */
 	id: string;
@@ -71,6 +85,9 @@ export type KeyDefinition = {
 	tonicPc: PitchClass | null;
 	/** Which spelling the keyboard and chips should use. */
 	spelling: Spelling;
+	mode: ModeName;
+	/** The major key signature used to notate this mode. */
+	signature: KeySignature;
 };
 
 /**
@@ -78,26 +95,73 @@ export type KeyDefinition = {
  * handoff. Sharp keys (G/D/A/E/B) prefer sharp spelling; flat keys
  * (F/B♭/E♭/A♭/D♭) prefer flats; C is a no-op natural key spelled with sharps.
  */
+const ROOT_DEFINITIONS = [
+	['C', 'C', 0, 'sharp', 'C'],
+	['G', 'G', 7, 'sharp', 'G'],
+	['D', 'D', 2, 'sharp', 'D'],
+	['A', 'A', 9, 'sharp', 'A'],
+	['E', 'E', 4, 'sharp', 'E'],
+	['B', 'B', 11, 'sharp', 'B'],
+	['F', 'F', 5, 'flat', 'F'],
+	['F#', 'F♯', 6, 'sharp', 'F#'],
+	['Bb', 'B♭', 10, 'flat', 'Bb'],
+	['Eb', 'E♭', 3, 'flat', 'Eb'],
+	['Ab', 'A♭', 8, 'flat', 'Ab'],
+	['Db', 'D♭', 1, 'flat', 'Db']
+] as const satisfies readonly [string, string, PitchClass, Spelling, KeySignature][];
+
+const ROOT_BY_PC = new Map<number, (typeof ROOT_DEFINITIONS)[number]>(
+	ROOT_DEFINITIONS.map((root) => [root[2], root])
+);
+const modeIntervals = [0, 2, 4, 5, 7, 9, 11] as const;
+
+function makeKey(root: (typeof ROOT_DEFINITIONS)[number], mode: ModeName): KeyDefinition {
+	const [rootId, rootLabel, tonicPc, spelling] = root;
+	const modeIndex = MODES.findIndex((entry) => entry.value === mode);
+	const parentPc = normalizePitchClass(tonicPc - modeIntervals[modeIndex]);
+	const parent = ROOT_BY_PC.get(parentPc) ?? root;
+	const id = mode === 'major' ? rootId : `${rootId}:${mode}`;
+	return {
+		id,
+		label: mode === 'major' ? `${rootLabel} Major` : `${rootLabel} ${MODES[modeIndex].label}`,
+		short: rootLabel,
+		tonicPc,
+		spelling,
+		mode,
+		signature: parent[4]
+	};
+}
+
+const CHROMATIC_KEY: KeyDefinition = {
+	id: 'chromatic',
+	label: 'Chromatic',
+	short: 'Chromatic',
+	tonicPc: null,
+	spelling: 'both',
+	mode: 'major',
+	signature: 'C'
+};
+
+export const ROOT_KEYS: readonly KeyDefinition[] = [
+	CHROMATIC_KEY,
+	...ROOT_DEFINITIONS.map((root) => makeKey(root, 'major'))
+];
+
 export const KEYS: readonly KeyDefinition[] = [
-	{ id: 'chromatic', label: 'Chromatic', short: 'Chromatic', tonicPc: null, spelling: 'both' },
-	{ id: 'C', label: 'C Major', short: 'C', tonicPc: 0, spelling: 'sharp' },
-	{ id: 'G', label: 'G Major', short: 'G', tonicPc: 7, spelling: 'sharp' },
-	{ id: 'D', label: 'D Major', short: 'D', tonicPc: 2, spelling: 'sharp' },
-	{ id: 'A', label: 'A Major', short: 'A', tonicPc: 9, spelling: 'sharp' },
-	{ id: 'E', label: 'E Major', short: 'E', tonicPc: 4, spelling: 'sharp' },
-	{ id: 'B', label: 'B Major', short: 'B', tonicPc: 11, spelling: 'sharp' },
-	{ id: 'F', label: 'F Major', short: 'F', tonicPc: 5, spelling: 'flat' },
-	{ id: 'Bb', label: 'B♭ Major', short: 'B♭', tonicPc: 10, spelling: 'flat' },
-	{ id: 'Eb', label: 'E♭ Major', short: 'E♭', tonicPc: 3, spelling: 'flat' },
-	{ id: 'Ab', label: 'A♭ Major', short: 'A♭', tonicPc: 8, spelling: 'flat' },
-	{ id: 'Db', label: 'D♭ Major', short: 'D♭', tonicPc: 1, spelling: 'flat' }
+	CHROMATIC_KEY,
+	...ROOT_DEFINITIONS.flatMap((root) => MODES.map(({ value }) => makeKey(root, value)))
 ];
 
 const KEYS_BY_ID = new Map(KEYS.map((key) => [key.id, key]));
 
 /** Look up a key definition by id, falling back to Chromatic for unknown ids. */
 export function keyById(id: string): KeyDefinition {
-	return KEYS_BY_ID.get(id) ?? KEYS[0];
+	const normalizedId = id.endsWith(':major') ? id.slice(0, -':major'.length) : id;
+	return KEYS_BY_ID.get(normalizedId) ?? CHROMATIC_KEY;
+}
+
+export function modeForKey(key: KeyDefinition): ModeName {
+	return key.mode;
 }
 
 /** Wrap any integer into the 0–11 pitch-class range. */
@@ -117,10 +181,8 @@ export function isBlackPitchClass(pc: PitchClass): boolean {
  */
 export function majorScalePitchClasses(tonicPc: PitchClass): PitchClass[] {
 	const tonic = normalizePitchClass(tonicPc);
-	// Anchor to octave 4 purely so octavian has a concrete note to build from;
-	// the octave is irrelevant once we reduce to pitch classes.
-	return MAJOR_SCALE_INTERVALS.map(
-		(interval) => Note.fromMidi(createMidiKey(60 + tonic + interval)).chromaticIndex
+	return Scale.create(Note.fromMidi(createMidiKey(60 + tonic)), 'major').notes.map(
+		(note) => note.chromaticIndex
 	);
 }
 
@@ -129,7 +191,8 @@ export function scalePitchClassSet(key: KeyDefinition): Set<PitchClass> {
 	if (key.tonicPc === null) {
 		return new Set(Array.from({ length: 12 }, (_, pc) => pc));
 	}
-	return new Set(majorScalePitchClasses(key.tonicPc));
+	const root = Note.fromMidi(createMidiKey(60 + normalizePitchClass(key.tonicPc)));
+	return new Set(Scale.create(root, key.mode).notes.map((note) => note.chromaticIndex));
 }
 
 /**

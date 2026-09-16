@@ -94,12 +94,12 @@ test('limits targets to the selected key and handles an empty eligible-note sele
 
 	await page.getByLabel('Key', { exact: true }).selectOption('G');
 	await expect(page.getByRole('button', { name: 'Reset notes to G Major' })).toBeHidden();
-	await expect(eligibleNotes(page).getByRole('button', { pressed: true })).toHaveCount(7);
-	await expect(eligibleNotes(page).getByRole('button', { pressed: false })).toHaveCount(5);
+	await expect(eligibleNotes(page).getByRole('checkbox', { checked: true })).toHaveCount(7);
+	await expect(eligibleNotes(page).getByRole('checkbox', { checked: false })).toHaveCount(5);
 
 	// Remove every eligible pitch class. The exercise must become explicitly
 	// empty instead of presenting a stale question from the previous scope.
-	const pressedNotes = eligibleNotes(page).getByRole('button', { pressed: true });
+	const pressedNotes = eligibleNotes(page).getByRole('checkbox', { checked: true });
 	for (let index = (await pressedNotes.count()) - 1; index >= 0; index--) {
 		await pressedNotes.nth(index).click();
 	}
@@ -164,24 +164,15 @@ for (const width of viewports) {
 			await expect(page.getByRole('group', { name: 'Eligible notes' })).toBeVisible();
 			const stringChoice = page
 				.getByRole('group', { name: 'Strings', exact: true })
-				.getByRole('button', { name: 'String 1 · E4', exact: true });
-			const noteChoice = eligibleNotes(page).getByRole('button', { name: 'C', exact: true });
-			const fretChoice = page.getByRole('radio', { name: '22', exact: true });
-			const selectedBackground = await fretChoice.evaluate(
-				(element) => getComputedStyle(element).backgroundColor
-			);
-			await expect(stringChoice).toHaveCSS('background-color', selectedBackground);
-			await expect(noteChoice).toHaveCSS('background-color', selectedBackground);
-			await expect(stringChoice.locator('svg')).toBeVisible();
-			await expect(noteChoice.locator('svg')).toBeVisible();
+				.getByRole('checkbox', { name: 'String 1 · E4', exact: true });
+			const noteChoice = eligibleNotes(page).getByRole('checkbox', { name: 'C', exact: true });
+			await expect(stringChoice).toBeChecked();
+			await expect(noteChoice).toBeChecked();
 			await stringChoice.click();
-			await expect(stringChoice).toHaveAttribute('aria-pressed', 'false');
+			await expect(stringChoice).not.toBeChecked();
 			await expect(stringChoice).toBeEnabled();
-			await expect(stringChoice.locator('svg')).toBeHidden();
-			await expect(stringChoice).not.toHaveCSS('background-color', selectedBackground);
 			await stringChoice.press('Space');
-			await expect(stringChoice).toHaveAttribute('aria-pressed', 'true');
-			await expect(stringChoice.locator('svg')).toBeVisible();
+			await expect(stringChoice).toBeChecked();
 			expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
 				true
 			);
@@ -245,7 +236,7 @@ test('scopes targets and answers to strings, octaves, and practice frets', async
 	for (const number of [1, 2, 3, 4, 5]) {
 		await page
 			.getByRole('group', { name: 'Strings', exact: true })
-			.getByRole('button', { name: new RegExp(`^String ${number} ·`) })
+			.getByRole('checkbox', { name: new RegExp(`^String ${number} ·`) })
 			.click();
 	}
 	await fretboard(page).getByRole('gridcell', { name: 'String 1 fret 0', exact: true }).click();
@@ -279,14 +270,14 @@ test('selects multiple strings and handles an empty string selection', async ({ 
 	await page.goto('/fretboard');
 	await page.getByLabel('Exercise', { exact: true }).selectOption('text');
 	const strings = page.getByRole('group', { name: 'Strings', exact: true });
-	await expect(strings.getByRole('button', { pressed: true })).toHaveCount(6);
+	await expect(strings.getByRole('checkbox', { checked: true })).toHaveCount(6);
 	for (const number of [2, 3, 4, 5]) {
-		await strings.getByRole('button', { name: new RegExp(`^String ${number} ·`) }).click();
+		await strings.getByRole('checkbox', { name: new RegExp(`^String ${number} ·`) }).click();
 	}
-	await expect(strings.getByRole('button', { pressed: true })).toHaveCount(2);
+	await expect(strings.getByRole('checkbox', { checked: true })).toHaveCount(2);
 	await fretboard(page).getByRole('gridcell', { name: 'String 1 fret 0', exact: true }).click();
 	await expect(page.getByText('1 of 1 correct', { exact: true })).toBeVisible();
-	await strings.getByRole('button', { name: /^String 1 ·/ }).click();
+	await strings.getByRole('checkbox', { name: /^String 1 ·/ }).click();
 	await fretboard(page).getByRole('gridcell', { name: 'String 6 fret 0', exact: true }).click();
 	await expect(page.getByText('2 of 2 correct', { exact: true })).toBeVisible();
 	await expect(fretboard(page).locator('[aria-selected="true"]')).toHaveAttribute(
@@ -294,9 +285,9 @@ test('selects multiple strings and handles an empty string selection', async ({ 
 		'true'
 	);
 	await expect(fretboard(page).locator('[data-highlighted="true"]')).toHaveCount(1);
-	await strings.getByRole('button', { name: /^String 6 ·/ }).click();
+	await strings.getByRole('checkbox', { name: /^String 6 ·/ }).click();
 	await expect(page.getByText('Select at least one string to begin.')).toBeVisible();
 	await expect(page.getByRole('button', { name: 'Next note', exact: true })).toBeDisabled();
-	await strings.getByRole('button', { name: /^String 1 ·/ }).click();
+	await strings.getByRole('checkbox', { name: /^String 1 ·/ }).click();
 	await expect(page.locator('.target-note')).toHaveText('E');
 });

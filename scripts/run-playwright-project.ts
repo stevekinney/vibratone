@@ -8,10 +8,12 @@ if (mode !== 'production' && mode !== 'development') {
 }
 
 const executable = process.platform === 'win32' ? 'bun.cmd' : 'bun';
+const environment = { ...process.env };
+delete environment.NO_COLOR;
 const result = spawnSync(executable, ['x', 'playwright', 'test', `--project=${mode}`], {
 	stdio: 'inherit',
 	env: {
-		...process.env,
+		...environment,
 		VIBRATONE_E2E_MODE: mode
 	}
 });

@@ -46,5 +46,8 @@ test('keeps navigation links visible without a brand on desktop', async ({ page 
 	await expect(page.getByRole('link', { name: 'Ear training', exact: true })).toBeVisible();
 	await expect(page.getByRole('link', { name: 'Key signatures', exact: true })).toBeVisible();
 	await expect(page.getByRole('link', { name: 'Fretboard', exact: true })).toBeVisible();
+	await expect(page.getByRole('link', { name: 'Chords', exact: true })).toBeVisible();
+	await expect(page.getByRole('link', { name: 'Chord training', exact: true })).toBeVisible();
+	await expect(nav.getByRole('link')).toHaveCount(5);
 	await expect(nav).not.toContainText('Vibratone');
 });

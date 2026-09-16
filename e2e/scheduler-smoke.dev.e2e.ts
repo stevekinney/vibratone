@@ -55,6 +55,10 @@ test('scheduler-smoke supports keyboard play and stop', async ({ page }) => {
 	await page.keyboard.press('Tab');
 	await expect(page.getByRole('link', { name: 'Fretboard', exact: true })).toBeFocused();
 	await page.keyboard.press('Tab');
+	await expect(page.getByRole('link', { name: 'Chords', exact: true })).toBeFocused();
+	await page.keyboard.press('Tab');
+	await expect(page.getByRole('link', { name: 'Chord training', exact: true })).toBeFocused();
+	await page.keyboard.press('Tab');
 	await expect(play).toBeFocused();
 	await page.keyboard.press('Enter');
 	await expect(stop).toBeEnabled();

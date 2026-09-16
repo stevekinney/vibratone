@@ -47,6 +47,14 @@
 		<NavigationItem href="/fretboard" {variant} active={page.url.pathname === '/fretboard'}
 			>Fretboard</NavigationItem
 		>
+		<NavigationItem href="/chords" {variant} active={page.url.pathname === '/chords'}
+			>Chords</NavigationItem
+		>
+		<NavigationItem
+			href="/chord-training"
+			{variant}
+			active={page.url.pathname === '/chord-training'}>Chord training</NavigationItem
+		>
 	{/snippet}
 </NavigationBar>
 
